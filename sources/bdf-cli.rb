@@ -37,6 +37,7 @@ class BDFcli < Thor
         
     desc "index FILEPATH", "Index a specificated file"
     method_option :index, :aliases => "-i", :desc => "Specify the index where the input file will be indexed, elsewere were used default"
+    method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
     def index (filepath)
         load_setup
         if options[:index] != nil
@@ -48,9 +49,9 @@ class BDFcli < Thor
                 raise "If you don't specify an espicit index, you have to set default index key with setdef command."
             end
         end
-        client = Elasticsearch::Client.new log: true
+        client = Elasticsearch::Client.new log: false
         indexer = Indexer.new client, index
-        indexer.parse filepath    
+        indexer.parse filepath, options[:filetype]    
     rescue RuntimeError => exc
         $stderr.puts "ERROR: " + exc.to_s
     end

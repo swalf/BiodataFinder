@@ -14,9 +14,13 @@ class Indexer
         @client, @index = client, index
     end
 
-    def parse (filepath)
-        mn = "#{File.extname(filepath)[1..-1].capitalize}_code"
-        puts mn
+    def parse (filepath, filetype = nil)
+        if filetype == nil
+            mn = "#{File.extname(filepath)[1..-1].capitalize}_code"
+        else
+            mn = "#{filetype.capitalize}_code"
+        end
+        
         IndexerCodes.const_get(mn).call self, filepath  #costruisce il nome dell'oggetto dalla stringa
     rescue NameError
         $stderr.puts "#{filepath}: Parsing for this filetype isn't yet implemented."
