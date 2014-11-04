@@ -15,9 +15,11 @@ class Indexer
     end
 
     def parse (filepath)
-         mn = "#{File.extname(filepath)[1..-1].capitalize}_code"
-         puts mn
-         IndexerCodes.const_get(mn).call self, filepath  #costruisce il nome dell'oggetto dalla stringa     
+        mn = "#{File.extname(filepath)[1..-1].capitalize}_code"
+        puts mn
+        IndexerCodes.const_get(mn).call self, filepath  #costruisce il nome dell'oggetto dalla stringa
+    rescue NameError
+        $stderr.puts "#{filepath}: Parsing for this filetype isn't yet implemented."
     end
 
     

@@ -1,7 +1,8 @@
 require "json"
 require "elasticsearch"
+require_relative "reconstructorcodes.rb"
 
-class CLIFinder
+class Finder
 
     attr_accessor :client, :index
     
@@ -9,25 +10,29 @@ class CLIFinder
         @client, @index = client, index.downcase
     end
 
-    def query (query_text)
+    def query (query_text, output_format)
         results =  (@client.search index: @index, q: query_text)
         answers = results["hits"]["hits"].inject([]) {|stor, el| [el["_source"]]}
         puts "#{answers.length} result(s) found:"
+        objs = []
         answers.each_with_index do |answer,i|
-            puts "#{i}:"
-            answer.each_pair {|key, value| (puts key + ': ' + value.to_s) unless key == "position"}
-            puts "Document:"
             filepath = answer["position"]["dir"] + '/' + answer["position"]["name"] + answer["position"]["extension"]
+            objs = []
             File.open(filepath, "r") do |file|
                 file.seek answer["position"]["line_start_byte"].to_i
                 line = file.gets
-                line.length.times {print '#'}
-                puts
-                puts line
-                line.length.times {print '#'}
-                puts
-            end
+                return line if output_format == 'rawline'
+                return "Sorry, not yet implemented!" if output_format == 'pretty_output' #Issue: pretty output not yet implemented!
+                obj = self.reconstruct(line, answer["position"]["extension"])
+                objs << obj
+            end 
         end
+        objs
+    end
+    
+    def reconstruct (line, type)
+        mn = type[1..-1].capitalize + "_code"
+        ReconstructorCodes.const_get(mn).call line, type #Call the appropriate code for recostructoring the json from line data
     end
 
 end
