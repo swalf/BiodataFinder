@@ -32,6 +32,14 @@ class Indexer
         @client.index  index: @index.to_s.downcase, type: type, body: document
         #puts "index: #{@index} type: #{type} body #{document}"
     end
+    
+    def load_pool (docpool, type)
+        body = []
+        docpool.each do |doc|
+            body << { index:  { _index: @index.to_s.downcase, _type: type, data: doc } }
+        end
+        @client.bulk body: body
+    end
        
 end
 

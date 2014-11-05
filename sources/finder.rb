@@ -21,7 +21,7 @@ class Finder
             File.open(filepath, "r") do |file|
                 file.seek answer["position"]["line_start_byte"].to_i
                 line = file.gets
-                return line if output_format == 'rawline'
+                return line if output_format == 'rawline' or output_format == nil
                 return "Sorry, not yet implemented!" if output_format == 'pretty_output' #Issue: pretty output not yet implemented!
                 obj = self.reconstruct(line, answer["position"]["extension"])
                 objs << obj
