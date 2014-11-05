@@ -21,7 +21,7 @@ $poolsize = 10000
                 "FPKM_conf_hi",
                 "FPKM_status"
             ] 
-            lbs = file.pos #Byte di inizio riga
+            lbs = file.pos # Start line byte
             docpool = []
             file.each_with_index do |line,i|
 
@@ -59,15 +59,14 @@ $poolsize = 10000
 #Tracking end
 #GTF start
 
-    # Bulk indexing have to be implemented here yet!!!
     Gtf_code = proc do |idx, filepath|
         File.open(filepath, "r") do |file|
             comments = 0
-            lbs = file.pos #Byte di inizio riga
+            lbs = file.pos # Start line byte
             file.each_with_index do |line,i|
                 if line[0] == '#'
                     comments += 1
-                    lbs = file.pos #Aggiorna il dato per la nova riga.
+                    lbs = file.pos # Refresh data for the new line.
                     next
                 end
       
@@ -76,7 +75,7 @@ $poolsize = 10000
                 f_name = File.basename(filepath, f_ext) 
                 f_dir = File.dirname(filepath)
                 position = {"dir" => f_dir, "name" => f_name, "extension" => f_ext, "line_start_byte" => lbs}
-                lbs = file.pos #Aggiorna il dato per la nova riga.
+                lbs = file.pos # Refresh data for the new line.
 
                 document = {
                     "seqname" => seqname,
@@ -89,9 +88,14 @@ $poolsize = 10000
                     "frame" => frame,
                     "position" => position    
                 } 
-                   
-                idx.load_document document, "gtf"      
-            end
+                
+                if i % $poolsize == 0 # When the pool fills the specificated amount, it is loaded and emptied
+                    idx.load_pool docpool, "gtf"
+                    docpool = []
+                end
+                
+           end
+           (idx.load_pool docpool, "gtf") unless docpool == [] # When file was been enterely processed, docpool have to to be load if it isn't empty.
         end
     end
 
