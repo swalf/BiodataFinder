@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.0.1.pre'
+  s.version     = '0.0.2.pre'
   s.date        = '2014-11-05'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
-  s.add_runtime_dependency "thor", [">= 0.18"]
+  s.add_runtime_dependency "thor", ["~> 0.18"]
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
   # BiodataFinder
@@ -20,10 +20,12 @@ Gem::Specification.new do |s|
     "lib/finder.rb",
     "lib/indexer.rb",
     "bin/bdf-cli",
+    "bin/bdf-si",
     "lib/biodatafinder/indexercodes.rb",
     "lib/biodatafinder/reconstructorcodes.rb"
   ]
   s.executables << 'bdf-cli'
+  s.executables << 'bdf-si'
   s.homepage    =
     'https://github.com/swalf/BiodataFinder'
   s.license       = 'GPLv3'
