@@ -1,0 +1,21 @@
+# bdf-cli
+## A command line interface for BiodataFinder
+
+
+[Softare requirement]
+  - Ruby ~> 2.0
+  - ElasticSearch >= 1.3
+
+[Initial configuration]
+  - Start an ElasticSearch server (You can do this with 'your-elasticsearch-path/bin/elasticsearch').
+  - Install biodatafinder gem.
+
+[Usage examples]
+  * +bdf-cli index 'foo.gtf' --index my_index+
+    Index file called foo.gtf in my_index, system will try to guess filetype from extension.
+  * +bdf-cli setdef --field_name=def_index+
+    Set default index to def_index
+  * +bdf-cli index foo2.gtf --filetype gtf+ 
+    Index file called foo2.gtf in def_index, filetype is explicitely passed to.
+  * +bdf-cli search --index def_index --output_format rawline word1 word2 word3+
+    Search 'word1', 'word2', 'word3' in index 'def_index' and return the line(s) where words are collocated.

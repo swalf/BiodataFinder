@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+#
+# This is a command line interface for BiodataFinder
+#
+# Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
+# Copyright:: Copyright (c) 2014, Alessandro Bonfanti
+# License::   GNU GPLv3
 
 require 'thor'
 require 'indexer.rb'
