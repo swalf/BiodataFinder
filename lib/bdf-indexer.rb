@@ -2,7 +2,7 @@
 
 require 'json'
 require 'elasticsearch'
-require 'biodatafinder/indexercodes.rb'
+require_relative 'biodatafinder/indexercodes.rb'
 
 
 class Indexer

@@ -7,8 +7,8 @@
 # License::   GNU GPLv3
 
 require 'thor'
-require 'indexer.rb'
-require 'finder.rb'
+require '../lib/bdf-indexer.rb'
+require '../lib/bdf-finder.rb'
 require 'elasticsearch'
 
 class BDFcli < Thor
@@ -87,13 +87,18 @@ class BDFcli < Thor
     method_option :output_format, :aliases => "-f", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (*text)
         load_setup
-        client = Elasticsearch::Client.new log: true
+        client = Elasticsearch::Client.new log: false
         index = options[:index]
         index = @def_index if index.nil?
         raise "If you don't specify an espicit index, you have to set default index key with setdef command." if index.nil?
         finder = Finder.new(client, index)
         query_text = text.join(' ')
-        puts (finder.query query_text, options[:output_format])
+        results = finder.query query_text, options[:output_format]
+        puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
+        results[:objs].each_with_index do |obj,i|
+            puts "Result #{i+1} (score #{obj[:infos][:scores]}):"
+            puts obj[:data]
+        end
     end
     
 end
