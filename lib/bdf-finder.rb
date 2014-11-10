@@ -13,7 +13,8 @@ class Finder
     end
 
     def query (query_text, output_format)
-        results =  (@client.search index: @index, q: query_text)
+        
+        results =  @client.search index: @index, body: {query: {wildcard: {_all: query_text}}}
         answers = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
         scores = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
         gen_infos = {:nres => answers.length, :max_scores => scores.max}
