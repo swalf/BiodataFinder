@@ -27,16 +27,18 @@ class Finder
                 line = file.gets
                 case output_format
                 when 'json'
-                    json = self.reconstruct(line, answer["position"]["extension"])
+                    json = JSON.generate( self.reconstruct(line, answer["position"]["extension"]) )
+                    objs << {:infos => infos, :data => json}
+                when 'pretty_json'
+                    json = JSON.pretty_generate( self.reconstruct(line, answer["position"]["extension"]) )
                     objs << {:infos => infos, :data => json}
                 when 'rawline'
                     objs << {:infos => infos, :data => line}
-                when 'pretty_output'
-                    return "Sorry, not yet implemented!"
-                    #Issue: pretty output not yet implemented!
+                when 'hash'
+                    hash = self.reconstruct(line, answer["position"]["extension"])
+                    objs << {:infos => infos, :data => hash}
                 else
-                    json = self.reconstruct(line, answer["position"]["extension"])
-                    objs << {:infos => infos, :data => json}
+                    raise "Invalid output format"
                 end
             end 
         end

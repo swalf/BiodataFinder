@@ -7,8 +7,8 @@
 # License::   GNU GPLv3
 
 require 'thor'
-require '../lib/bdf-indexer.rb'
-require '../lib/bdf-finder.rb'
+require_relative '../lib/bdf-indexer.rb'
+require_relative '../lib/bdf-finder.rb'
 require 'elasticsearch'
 
 class BDFcli < Thor
@@ -59,7 +59,9 @@ class BDFcli < Thor
         end
         client = Elasticsearch::Client.new log: false
         indexer = Indexer.new client, index
-        indexer.parse filepath, options[:filetype]    
+        indexer.parse filepath, options[:filetype]
+    rescue Faraday::ConnectionFailed => exc
+        puts "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-cli."
     rescue RuntimeError => exc
         $stderr.puts "ERROR: " + exc.to_s
     end
@@ -93,12 +95,16 @@ class BDFcli < Thor
         raise "If you don't specify an espicit index, you have to set default index key with setdef command." if index.nil?
         finder = Finder.new(client, index)
         query_text = text.join(' ')
-        results = finder.query query_text, options[:output_format]
+        of = options[:output_format]
+        of = 'pretty_json' if of.nil?
+        results = finder.query query_text, of
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
             puts "Result #{i+1} (score #{obj[:infos][:scores]}):"
             puts obj[:data]
         end
+    rescue Faraday::ConnectionFailed
+        puts "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-cli."
     end
     
 end
