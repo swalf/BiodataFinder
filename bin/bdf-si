@@ -7,7 +7,7 @@
 # License::   GNU GPLv3
 
 require 'sinatra'
-require 'finder'
+require_relative '../lib/bdf-finder.rb'
 
 class BdfSCli < Sinatra::Base
 
