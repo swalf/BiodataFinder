@@ -1,3 +1,5 @@
-label for="search" Search:
-input#search type="text" name="search" value="#{@search}"
-input type="submit" value="Search!"
+h1 "Fill the search box"
+form method="POST" action="/searched"
+	label for="search" Search:
+	input#search type="text" name="search" value="#{@search}"
+	input type="submit" value="Search!"
