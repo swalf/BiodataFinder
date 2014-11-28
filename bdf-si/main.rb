@@ -3,11 +3,12 @@
 
 require 'sinatra'
 require 'slim'
-require 'sinatra/reloader' if development?
+
 if development?
-  require_relative '../lib/bdf-finder.rb'
+    require_relative '../lib/bdf-finder.rb'
+    require 'sinatra/reloader'
 else
-  require 'finder'
+    require 'finder'
 end
 
 configure do
@@ -30,23 +31,27 @@ get '/search' do
 end
 
 post '/results' do
-    @title = "You have search:"
-    @searched = params[:search].to_s
-    client = (Elasticsearch::Client.new)
-    index = "a3"
-    finder = Finder.new(client, index)
-    query_text = @searched
-    results = (finder.query query_text, 'pretty_json')
-    @str_res = ""
-    @str_res << "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
-    results[:objs].each_with_index do |obj,i|
-        @str_res << "Result #{i+1} (score #{obj[:infos][:scores]}):\n"
-        @str_res << obj[:data]
+    begin
+        @title = "You have search:"
+        @searched = params[:search].to_s
+        client = (Elasticsearch::Client.new)
+        index = "a3"
+        finder = Finder.new(client, index)
+        query_text = @searched
+        results = (finder.query query_text, 'rawline')
+        @str_res = ""
+        @str_res << "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
+        results[:objs].each_with_index do |obj,i|
+            @str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
+            @str_res << obj[:data]
+        end
+        slim :results
+    rescue Faraday::ConnectionFailed => exc
+        slim :es_error
     end
-    slim :results
 end
 
 not_found do
-    erb :not_found
+    slim :not_found
 end
 

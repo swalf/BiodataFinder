@@ -27,6 +27,8 @@ class BDFcli < Thor
                 case key
                 when "def_index"
                     @def_index = value.downcase.chomp
+                when "indexes"
+                	@indexes = values.split(',')
                 else 
                     raise "Config file entain wrong fields!"
                 end
@@ -57,6 +59,10 @@ class BDFcli < Thor
                 raise "If you don't specify an espicit index, you have to set default index key with setdef command."
             end
         end
+		unless @indexes.contain? index
+			@indexes << index
+			self.setdef "--indexes=#{@indexes.join(',')}"
+		end
         client = Elasticsearch::Client.new log: false
         indexer = Indexer.new client, index
         indexer.parse filepath, options[:filetype]
