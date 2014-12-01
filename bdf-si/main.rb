@@ -11,13 +11,28 @@ else
     require 'finder'
 end
 
+File.open("../.bdf-cli.conf","r") do |file|
+	file.each do |line|
+		next if line[0] == '#'
+		key, value = line.split(':') 
+		case key
+		when "def_index"
+			@def_index = value.downcase.chomp
+		when "indexes"
+			@indexes = values.split(',')
+		else 
+			raise "Config file entain wrong fields!"
+		end
+	end
+end
+
 configure do
     set :port, 1234
     enable :session
 end
 
 get '/' do
-    @title = "A tool for searching in biodata files."
+    @title = "BiodataFinder - Home"
     slim :home
 end
 
@@ -25,18 +40,18 @@ get '/about' do
     slim :about
 end
 get '/search' do
-    @title = "Enter a new search!"
+    @title = "BDF search"
     @search
     slim :search
 end
 
 post '/results' do
     begin
-        @title = "You have search:"
+        @title = "Results for '#{params[:search]}'"
         @searched = params[:search].to_s
         client = (Elasticsearch::Client.new)
-        index = "a3"
-        finder = Finder.new(client, index)
+        @sindex = params[:index] || @def_index #|| raise "Index lacks!"
+        finder = Finder.new(client, @sindex)
         query_text = @searched
         results = (finder.query query_text, 'rawline')
         @str_res = ""
