@@ -7,25 +7,97 @@
 # License::   GNU GPLv3
 
 require 'sinatra'
-require_relative '../lib/bdf-finder.rb'
-
-class BdfSCli < Sinatra::Base
-
-  get '/' do
-    "BiodataFinder Sinatra (very!) prototipal interface\n
-    usage: ./search/index_to_search/word1_word2_word3"
-  end
-
-  get '/search/:index/:text' do
-    client = Elasticsearch::Client.new log: false
-    index = params[:index]
-    finder = Finder.new(client, index)
-    query_text = params[:text].split('_').join(' ')
-    res = (finder.query query_text, 'rawline')
-    res
-  end
-  
+require 'slim'
+if development?
+    require_relative '../lib/bdf-finder.rb'
+    require 'sinatra/reloader'
+else
+    require 'bdf-finder'
 end
 
-run BdfSCli.new
+begin
+unless File.exist? ENV['HOME'] + "/.biodatafinder/bdf.conf"
+            File.open(ENV['HOME'] + "/.biodatafinder/bdf.conf", "w").puts "# bdf config file:", "# sintax 'key':'value'"
+end
+File.open(ENV['HOME'] + "/.biodatafinder/bdf.conf","r") do |file|
+            file.each do |line|
+                next if line[0] == '#'
+                key, value = line.split(':') 
+                case key
+                when "def_index"
+                    @def_index = value.downcase.chomp
+                when "indexes"
+                	@indexes = values.split(',')
+                else 
+                    raise "Config file entain wrong fields!"
+                end
+            end
+end
+
+rescue RuntimeError => exc
+        if exc.message == "Config file entain wrong fields!"
+            $stderr.puts "Error: #{exc.message}",
+              "Config file will be not loaded."
+        else
+            $stderr.puts "Error: #{exc.message}"
+        end
+end
+
+#class BdfSI < Sinatra::Base
+
+configure do
+    set :port, 1234
+	set :root, "../"
+    enable :session
+end
+
+get '/' do
+    @title = "BiodataFinder - Home"
+    slim :home
+end
+
+get '/about' do
+    slim :about
+end
+get '/search' do
+    @title = "BDF search"
+    @search
+    slim :search
+end
+
+post '/results' do
+    begin
+        @title = "Results for '#{params[:search]}'"
+        @searched = params[:search].to_s
+        client = (Elasticsearch::Client.new)
+        @sindex = params[:index] || @def_index #|| raise "Index lacks!"
+        finder = Finder.new(client, @sindex)
+        query_text = @searched
+        results = (finder.query query_text, 'rawline')
+        @str_res = ""
+		unless results.any? 
+			@res_preamble = "Sorry, I can't find anything for this search terms."
+		else
+        	@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
+        	results[:objs].each_with_index do |obj,i|
+				@str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
+				@str_res << obj[:data]
+			end
+		end
+        slim :results
+    rescue Faraday::ConnectionFailed => exc
+        slim :es_error
+    end
+end
+
+not_found do
+    slim :not_found
+end
+
+
+
+#end #class
+
+
+
 
