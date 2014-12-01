@@ -55,11 +55,15 @@ post '/results' do
         query_text = @searched
         results = (finder.query query_text, 'rawline')
         @str_res = ""
-        @str_res << "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
-        results[:objs].each_with_index do |obj,i|
-            @str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
-            @str_res << obj[:data]
-        end
+		unless results.any? 
+			@res_preamble = "Sorry, I can't find anything for this search terms."
+		else
+        	@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
+        	results[:objs].each_with_index do |obj,i|
+				@str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
+				@str_res << obj[:data]
+			end
+		end
         slim :results
     rescue Faraday::ConnectionFailed => exc
         slim :es_error
