@@ -9,46 +9,47 @@
 require 'sinatra'
 require 'slim'
 if development?
-    require_relative '../lib/bdf-finder.rb'
-    require 'sinatra/reloader'
+	require_relative '../lib/bdf-finder.rb'
+	require 'sinatra/reloader'
 else
-    require 'bdf-finder'
+	require 'bdf-finder'
 end
+$conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
 
 begin
-unless File.exist? ENV['HOME'] + "/.biodatafinder/bdf.conf"
-            File.open(ENV['HOME'] + "/.biodatafinder/bdf.conf", "w").puts "# bdf config file:", "# sintax 'key':'value'"
-end
-File.open(ENV['HOME'] + "/.biodatafinder/bdf.conf","r") do |file|
-            file.each do |line|
-                next if line[0] == '#'
-                key, value = line.split(':') 
-                case key
-                when "def_index"
-                    @def_index = value.downcase.chomp
-                when "indexes"
-                	@indexes = values.split(',')
-                else 
-                    raise "Config file entain wrong fields!"
-                end
-            end
+	unless File.exist? $conf_file
+		File.open($conf_file, "w").puts "# bdf config file:", "# sintax 'key':'value'"
+	end
+	File.open($conf_file,"r") do |file|
+		file.each do |line|
+		next if line[0] == '#'
+		key, value = line.split(':') 
+		case key
+		when "def_index"
+			@def_index = value.downcase.chomp
+		when "indexes"
+			@indexes = values.split(',')
+		else 
+			raise "Config file entain wrong fields!"
+		end
+	end
 end
 
 rescue RuntimeError => exc
-        if exc.message == "Config file entain wrong fields!"
-            $stderr.puts "Error: #{exc.message}",
-              "Config file will be not loaded."
-        else
-            $stderr.puts "Error: #{exc.message}"
-        end
+	if exc.message == "Config file entain wrong fields!"
+		$stderr.puts "Error: #{exc.message}",
+			"Config file will be not loaded."
+	else
+		$stderr.puts "Error: #{exc.message}"
+	end
 end
 
 #class BdfSI < Sinatra::Base
 
 configure do
-    set :port, 1234
+	set :port, 1234
 	set :root, "../"
-    enable :session
+	enable :session
 end
 
 get '/' do

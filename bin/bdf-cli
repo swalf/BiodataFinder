@@ -11,16 +11,18 @@ require_relative '../lib/bdf-indexer.rb'
 require_relative '../lib/bdf-finder.rb'
 require 'elasticsearch'
 
+$conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
+
 class BDFcli < Thor
     @def_index
     
     private
     
     def load_setup
-        unless File.exist? "./.bdf-cli.conf"
-            File.open("./.bdf-cli.conf", "w").puts "# bdf-cli config file:", "# sintax 'key':'value'"
+        unless File.exist? $conf_file
+            File.open($conf_file, "w").puts "# bdf-cli config file:", "# sintax 'key':'value'"
         end
-        File.open("./.bdf-cli.conf","r") do |file|
+        File.open($conf_file,"r") do |file|
             file.each do |line|
                 next if line[0] == '#'
                 key, value = line.split(':') 
@@ -78,9 +80,9 @@ class BDFcli < Thor
         load_setup
         options.each_pair do |field,value|  
             case field
-            when "index"
+            when "def_index"
                 @def_index = value
-                File.open("./.bdf-cli.conf", "a").puts "def_index:#{value}"  
+                File.open($conf_file, "a").puts "def_index:#{value}"  
                 puts "Default index = #{@def_index}"
             else
                 raise "Wrong field!"
