@@ -8,6 +8,7 @@
 
 require 'sinatra'
 require 'slim'
+require 'sass'
 if development?
 	require_relative '../lib/bdf-finder.rb'
 	require 'sinatra/reloader'
@@ -28,7 +29,8 @@ begin
 		when "def_index"
 			@def_index = value.downcase.chomp
 		when "indexes"
-			@indexes = values.split(',')
+			value[-1]="" if value[-1] == "\n"
+			@indexes = value.split(',')
 		else 
 			raise "Config file entain wrong fields!"
 		end
@@ -51,6 +53,8 @@ configure do
 	set :root, "../"
 	enable :session
 end
+
+get ('/styles.css') { scss :styles }
 
 get '/' do
     @title = "BiodataFinder - Home"

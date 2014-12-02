@@ -1,10 +1,12 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.0.5.pre'
+  s.version     = '0.0.6.pre'
   s.date        = '2014-12-01'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
+  s.add_runtime_dependency "slim", ["~> 2.0"]
+  s.add_runtime_dependency "sassy", ["~> 1.0"]
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
   # BiodataFinder
@@ -22,10 +24,20 @@ Gem::Specification.new do |s|
     "bin/bdf-cli",
     "bin/bdf-si",
     "lib/biodatafinder/indexercodes.rb",
-    "lib/biodatafinder/reconstructorcodes.rb"
+    "lib/biodatafinder/reconstructorcodes.rb",
+	"public/favicon.ico",
+	"public/images/logo.png",
+	"views/nav.slim",
+	"views/home.slim", 
+	"views/es_error.slim",
+	"views/not_found.slim", 
+	"views/search.slim",
+	"views/layout.slim",
+	"views/styles.scss", 
+	"views/results.slim", 
+	"views/about.slim"
   ]
-  Dir.entries("views").each {|e| s.files << "views/" + e}
-  Dir.entries("public").each {|e| s.files << "public/" + e}
+
   s.executables << 'bdf-cli'
   s.executables << 'bdf-si'
   s.homepage    =
