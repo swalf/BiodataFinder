@@ -30,7 +30,8 @@ class BDFcli < Thor
                 when "def_index"
                     @def_index = value.downcase.chomp
                 when "indexes"
-                	@indexes = values.split(',')
+					value[-1]="" if value[-1] == "\n"
+                	@indexes = value.split(',')
                 else 
                     raise "Config file entain wrong fields!"
                 end
@@ -63,7 +64,7 @@ class BDFcli < Thor
         end
 		unless @indexes.contain? index
 			@indexes << index
-			self.setdef "--indexes=#{@indexes.join(',')}"
+			setdef "--indexes=#{@indexes.join(',')}"
 		end
         client = Elasticsearch::Client.new log: false
         indexer = Indexer.new client, index
@@ -114,6 +115,20 @@ class BDFcli < Thor
     rescue Faraday::ConnectionFailed
         puts "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-cli."
     end
+	
+	desc "ilist","List indexes"
+	method_option :output_format, :aliases => "-f", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
+	def ilist
+		load_setup
+		of = options[:output_format] || 'pretty_json'
+		case of
+		when 'pretty_json'
+			puts JSON.pretty_generate(@indexes)
+		else
+			puts @indexes
+		end
+	end
+		
     
 end
 
