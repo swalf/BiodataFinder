@@ -46,11 +46,11 @@ rescue RuntimeError => exc
 	end
 end
 
-#class BdfSI < Sinatra::Base
+class BdfSI < Sinatra::Base
 
 configure do
 	set :port, 1234
-	set :root, "../"
+	set :root, "../app/"
 	enable :session
 end
 
@@ -78,7 +78,8 @@ post '/results' do
         @sindex = params[:index] || @def_index #|| raise "Index lacks!"
         finder = Finder.new(client, @sindex)
         query_text = @searched
-        results = (finder.query query_text, 'rawline')
+		of = params[:of]
+		results = (finder.query query_text, of)
         @str_res = ""
 		unless results.any? 
 			@res_preamble = "Sorry, I can't find anything for this search terms."
@@ -99,9 +100,9 @@ not_found do
     slim :not_found
 end
 
+run!
 
-
-#end #class
+end #class
 
 
 

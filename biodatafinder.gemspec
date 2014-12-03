@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.0.6.pre'
-  s.date        = '2014-12-01'
+  s.version     = '0.0.8.pre'
+  s.date        = '2014-12-03'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
@@ -25,17 +25,17 @@ Gem::Specification.new do |s|
     "bin/bdf-si",
     "lib/biodatafinder/indexercodes.rb",
     "lib/biodatafinder/reconstructorcodes.rb",
-	"public/favicon.ico",
-	"public/images/logo.png",
-	"views/nav.slim",
-	"views/home.slim", 
-	"views/es_error.slim",
-	"views/not_found.slim", 
-	"views/search.slim",
-	"views/layout.slim",
-	"views/styles.scss", 
-	"views/results.slim", 
-	"views/about.slim"
+	"app/public/favicon.ico",
+	"app/public/images/logo.png",
+	"app/views/nav.slim",
+	"app/views/home.slim", 
+	"app/views/es_error.slim",
+	"app/views/not_found.slim", 
+	"app/views/search.slim",
+	"app/views/layout.slim",
+	"app/views/styles.scss", 
+	"app/views/results.slim", 
+	"app/views/about.slim"
   ]
 
   s.executables << 'bdf-cli'
