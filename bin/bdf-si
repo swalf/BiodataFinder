@@ -17,6 +17,8 @@ else
 end
 $conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
 
+puts "hello!"
+
 begin
 	unless File.exist? $conf_file
 		File.open($conf_file, "w").puts "# bdf config file:", "# sintax 'key':'value'"
@@ -79,7 +81,7 @@ post '/results' do
         finder = Finder.new(client, @sindex)
         query_text = @searched
 		of = params[:of]
-		results = (finder.query query_text, of)
+        results = (finder.query query_text, of)
         @str_res = ""
 		unless results.any? 
 			@res_preamble = "Sorry, I can't find anything for this search terms."

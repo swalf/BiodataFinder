@@ -124,8 +124,12 @@ class BDFcli < Thor
 		case of
 		when 'pretty_json'
 			puts JSON.pretty_generate(@indexes)
-		else
+		when 'json'
+			puts JSON.generate(@indexes)
+		when 'list'
 			puts @indexes
+		else
+			raise "Invalid output format"
 		end
 	end
 		
