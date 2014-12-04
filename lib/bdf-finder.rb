@@ -13,8 +13,8 @@ class Finder
     end
 
     def query (query_text, output_format)
-        
-        results =  @client.search index: @index, body: {query: {wildcard: {_all: query_text}}}
+        # ES generates errors when only '-' is passed as a query 
+        results =  @client.search index: @index, body: {query: {query_string: {query: query_text}}}
         answers = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
         scores = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
         gen_infos = {:nres => answers.length, :max_scores => scores.max}
@@ -44,6 +44,9 @@ class Finder
             end 
         end
         {:gen_infos => gen_infos, :objs => objs}
+    rescue Elasticsearch::Transport::Transport::Errors => e
+    	$stderr.puts "ES error: " + e.message
+    	raise
     end
     
     def reconstruct (line, type)

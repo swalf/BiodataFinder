@@ -17,43 +17,37 @@ else
 end
 $conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
 
-puts "hello!"
-
 begin
 	unless File.exist? $conf_file
-		File.open($conf_file, "w").puts "# bdf config file:", "# sintax 'key':'value'"
+		raise "I can't find config file!"
 	end
 	File.open($conf_file,"r") do |file|
 		file.each do |line|
-		next if line[0] == '#'
-		key, value = line.split(':') 
-		case key
-		when "def_index"
-			@def_index = value.downcase.chomp
-		when "indexes"
-			value[-1]="" if value[-1] == "\n"
-			@indexes = value.split(',')
-		else 
-			raise "Config file entain wrong fields!"
+			next if line[0] == '#'
+			key, value = line.split(':') 
+			case key
+			when "def_index"
+				$def_index = value.downcase.chomp
+			when "indexes"
+				value[-1]="" if value[-1] == "\n"
+				$indexes = value.split(',')
+			else 
+				raise "Config file entain wrong fields!"
+			end
 		end
-	end
+	end	
 end
-
-rescue RuntimeError => exc
-	if exc.message == "Config file entain wrong fields!"
-		$stderr.puts "Error: #{exc.message}",
-			"Config file will be not loaded."
-	else
-		$stderr.puts "Error: #{exc.message}"
-	end
-end
+#il caricamento dovrebbe essere effettuato ogni volta che viene modificato il file di configurazione.
 
 class BdfSI < Sinatra::Base
+
+
 
 configure do
 	set :port, 1234
 	set :root, "../app/"
 	enable :session
+	
 end
 
 get ('/styles.css') { scss :styles }
@@ -77,7 +71,8 @@ post '/results' do
         @title = "Results for '#{params[:search]}'"
         @searched = params[:search].to_s
         client = (Elasticsearch::Client.new)
-        @sindex = params[:index] || @def_index #|| raise "Index lacks!"
+        @sindex = params[:index] || $def_index || (raise "I can't know in which index I have to search!")
+        raise "'#{@sindex}' is not a valid index!" unless $indexes.include? @sindex
         finder = Finder.new(client, @sindex)
         query_text = @searched
 		of = params[:of]
@@ -93,8 +88,21 @@ post '/results' do
 			end
 		end
         slim :results
-    rescue Faraday::ConnectionFailed => exc
+    rescue Faraday::ConnectionFailed => e
+    	@es_error = "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-si."
         slim :es_error
+    rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
+    	@es_error = "'#{@sindex}' is not a valid index!"
+    	slim :es_error
+    rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
+    	@es_error = "'#{@searched}' this is not a valid search (do not fill it only by delimiters)!"
+    	slim :es_error
+    rescue Elasticsearch::Transport::Transport::Error => e
+    	@es_error = "ElasticSearch error occurred: #{e.message}"
+    	slim :es_error
+    rescue RuntimeError => e
+    	@es_error = e.message
+    	slim :es_error
     end
 end
 
