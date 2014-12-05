@@ -14,6 +14,7 @@ class Finder
 
     def query (query_text, output_format)
         # ES generates errors when only '-' is passed as a query 
+        query_text.gsub!('-') {|c| c = ' '}
         results =  @client.search index: @index, body: {query: {query_string: {query: query_text}}}
         answers = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
         scores = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
@@ -50,7 +51,8 @@ class Finder
     end
     
     def reconstruct (line, type)
-        mn = type[1..-1].capitalize + "_code"
+        #mn = type[1..-1].capitalize + "_code"
+        mn = "Track_code" # Provvisorio - correggere!!!
         ReconstructorCodes.const_get(mn).call line, type #Call the appropriate code for recostructoring the json from line data
     end
 
