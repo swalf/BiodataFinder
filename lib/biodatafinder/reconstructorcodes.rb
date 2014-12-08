@@ -1,7 +1,7 @@
 
 module ReconstructorCodes
     
-    Track_code = proc do |line,type|
+    Tracking_code = proc do |line,type|
         ldata = line.split "\t"
         document = {
             "tracking_id" => tracking_id = ldata[0],

@@ -32,6 +32,8 @@ class BDFcli < Thor
                 when "indexes"
 					value[-1]="" if value[-1] == "\n"
                 	@indexes = value.split(',')
+                when "sinatra_def_output"
+                	@sinatra_def_output = value.downcase.chomp
                 else 
                     raise "Config file entain wrong fields!"
                 end
@@ -52,7 +54,8 @@ class BDFcli < Thor
     			"# bdf-cli config file:",
 				"# sintax 'key':'value'",
 				"def_index:#{@def_index}",
-				"indexes:#{@indexes.join(',')}"
+				"indexes:#{@indexes.join(',')}",
+				"sinatra_def_output:#{@sinatra_def_output}"
 			)		
 		end
     rescue RuntimeError => e
@@ -104,6 +107,11 @@ class BDFcli < Thor
             	@indexes = value.split(',') #security check needed
             	store_setup    
             	puts "Indexes = #{@indexes}"
+            when "sinatra_def_output"
+            	raise "'#{value}' is not a valid output format for bdf-si" unless ((value == "rawline") || (value == "pretty_json") || (value == "json"))
+            	@sinatra_def_output = value
+            	store_setup
+            	puts "Default bdf-si output format = #{@sinatra_def_output}"
             else
                 raise "Wrong field!"
             end

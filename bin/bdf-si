@@ -31,6 +31,8 @@ begin
 			when "indexes"
 				value[-1]="" if value[-1] == "\n"
 				$indexes = value.split(',')
+			when "sinatra_def_output"
+				@sinatra_def_output = value.downcase.chomp
 			else 
 				raise "Config file entain wrong fields!"
 			end
@@ -75,7 +77,11 @@ post '/results' do
         raise "'#{@sindex}' is not a valid index!" unless $indexes.include? @sindex
         finder = Finder.new(client, @sindex)
         query_text = @searched
-		of = params[:of]
+		if params[:of] == "default"
+			of = "default"
+		else
+			of = params[:of]
+		end
         results = (finder.query query_text, of)
         @str_res = ""
 		unless results.any? 

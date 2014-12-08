@@ -3,7 +3,7 @@ module IndexerCodes
 $poolsize = 10000
 #Tracking start
 
-    Track_code = proc do |idx, filepath|
+    Tracking_code = proc do |idx, filepath|
         File.open(filepath, "r") do |file|
             header = file.readline
             raise "tracking file format error" if header.split != [
@@ -41,6 +41,7 @@ $poolsize = 10000
                   "nearest_ref_id" => nearest_ref_id,
                   "gene_id" => gene_id,
                   "gene_short_name" => gene_short_name,
+                  "type" => "Tracking",
                   "position" => position
                 }
                 
@@ -86,6 +87,7 @@ $poolsize = 10000
                     "score" => score,
                     "strand" => strand,
                     "frame" => frame,
+                    "type" => "Gtf",
                     "position" => position    
                 } 
                 
