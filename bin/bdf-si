@@ -76,42 +76,51 @@ post '/results' do
         @sindex = params[:index] || $def_index || (raise "I can't know in which index I have to search!")
         raise "'#{@sindex}' is not a valid index!" unless $indexes.include? @sindex
         finder = Finder.new(client, @sindex)
-        query_text = @searched
-		if params[:of] == "table"
-			results = (finder.query query_text, "hash")
-		else
-			results = (finder.query query_text, params[:of])
-		end
-        
-        @str_res = ""
-		unless results.any? 
-			@res_preamble = "Sorry, I can't find anything for this search terms."
-			slim :results
-		else
-			@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
-			unless params[:of] == 'table'
-        		results[:objs].each_with_index do |obj,i|
-					@str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
-					@str_res << obj[:data]
-				end
-				slim :results
+        results = (finder.query @searched)
+        @res_preamble = (
+        	if results.any?
+				 "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
 			else
-				@tables = Array.new
-				table = {headers: (results[:objs].first)[:data].keys, data: []}
-				results[:objs].each_with_index do |obj,i|
-					if obj[:data].keys == table[:headers]
-						table[:data] << obj[:data].values
-					else
-						@tables << table
-						table = Hash.new
-						table[:headers] = obj[:data].keys
-						table[:data] = [obj[:data].values]
-					end
+				 "Sorry, I can't find anything for this search terms."
+			end
+		)	
+			
+		case params[:of]
+		when 'table'
+			@tables = Array.new
+			table = {headers: (results[:objs].first)[:data].keys, data: []}
+			results[:objs].each_with_index do |obj,i|
+				if obj[:data].keys == table[:headers]
+					table[:data] << obj[:data].values
+				else
+					@tables << table
+					table = Hash.new
+					table[:headers] = obj[:data].keys
+					table[:data] = [obj[:data].values]
 				end
-				@tables << table
-				erb :restable
-			end			
-		end
+			end
+			@tables << table
+			erb :restable
+		when 'pretty_json'
+			JSON.pretty_generate( results )
+		when 'json'
+			JSON.generate( results )
+		end	
+#		unless results.any? 
+#			@res_preamble = "Sorry, I can't find anything for this search terms."
+#			slim :results
+#		else
+#			@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
+#			unless params[:of] == 'table'
+#        		results[:objs].each_with_index do |obj,i|
+#					@str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
+#					@str_res << obj[:data]
+#				end
+#				slim :results
+#			else
+#				
+#			end			
+#		end
     rescue Faraday::ConnectionFailed => e
     	@es_error = "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-si."
         slim :es_error
@@ -131,7 +140,7 @@ post '/results' do
 end
 
 not_found do
-    slim :not_found
+    erb :not_found
 end
 
 run!

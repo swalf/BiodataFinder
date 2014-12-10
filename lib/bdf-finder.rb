@@ -12,7 +12,7 @@ class Finder
         @client, @index = client, index.downcase
     end
 
-    def query (query_text, output_format)
+    def query (query_text)
         # ES generates errors when only '-' is passed as a query 
         query_text.gsub!('-') {|c| c = ' '}
         results =  @client.search index: @index, body: {query: {query_string: {query: query_text}}}
@@ -27,21 +27,8 @@ class Finder
             File.open(filepath, "r") do |file|
                 file.seek answer["position"]["line_start_byte"].to_i
                 line = file.gets
-                case output_format
-                when 'json'
-                    json = JSON.generate( self.reconstruct(line, filetype) )
-                    objs << {:infos => infos, :data => json}
-                when 'pretty_json'
-                    json = JSON.pretty_generate( self.reconstruct(line, filetype) )
-                    objs << {:infos => infos, :data => json}
-                when 'rawline'
-                    objs << {:infos => infos, :data => line}
-                when 'hash'
-                    hash = self.reconstruct(line, filetype)
-                    objs << {:infos => infos, :data => hash}
-                else
-                    raise "Invalid output format"
-                end
+                hashline = self.reconstruct(line, filetype)
+                objs << {:infos => infos, :data => hashline}
             end 
         end
         {:gen_infos => gen_infos, :objs => objs}

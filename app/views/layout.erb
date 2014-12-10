@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title><%= @title  || "BiodataFinder" %></title>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="/styles.css">
+	</head>	
+	<body>
+		<header>
+			<h1>BiodataFinder</h1>
+			<%= erb :nav %>
+		</header>	
+		<section>
+			<%= yield %>
+		</section>	
+	</body>		
+</html>			
+
