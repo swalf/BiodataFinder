@@ -21,8 +21,9 @@ class Indexer
         end
         
         IndexerCodes.const_get(mn).call self, filepath  #costruisce il nome dell'oggetto dalla stringa
-    rescue NameError
-        $stderr.puts "#{filepath}: Parsing for this filetype isn't yet implemented."
+    rescue NameError => e #name error è troppo generica, bisognerebbe catturare un eccezione più specifica
+        $stderr.puts e.message 
+        $stderr.puts "#{filepath}: Parsing for this filetype (#{filetype}) isn't yet implemented."
     end
 
     

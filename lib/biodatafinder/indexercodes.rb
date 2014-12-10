@@ -64,6 +64,7 @@ $poolsize = 10000
         File.open(filepath, "r") do |file|
             comments = 0
             lbs = file.pos # Start line byte
+            docpool = []
             file.each_with_index do |line,i|
                 if line[0] == '#'
                     comments += 1
@@ -90,6 +91,8 @@ $poolsize = 10000
                     "type" => "Gtf",
                     "position" => position    
                 } 
+                
+                docpool << document
                 
                 if i % $poolsize == 0 # When the pool fills the specificated amount, it is loaded and emptied
                     idx.load_pool docpool, "gtf"

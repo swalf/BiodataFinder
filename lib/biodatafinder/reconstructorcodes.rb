@@ -31,7 +31,7 @@ module ReconstructorCodes
             "score" => score,
             "strand" => strand,
             "frame" => frame,
-            "position" => position    
+            "attributes" => attributes    
         } 
     end
     
