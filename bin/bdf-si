@@ -102,14 +102,13 @@ post '/results' do
 					if obj[:data].keys == table[:headers]
 						table[:data] << obj[:data].values
 					else
-						File.open("debuginfo.txt","w") {|f| f.puts ("T++++++able     :\n\n" + table.to_s)}
 						@tables << table
 						table = Hash.new
 						table[:headers] = obj[:data].keys
 						table[:data] = [obj[:data].values]
 					end
 				end
-				File.open("debuginfo.txt","a") {|f| f.puts ("T******************ables     :\n\n" + @tables.to_s)}
+				@tables << table
 				erb :restable
 			end			
 		end
