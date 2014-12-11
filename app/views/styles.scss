@@ -1,15 +1,18 @@
 $red: #903;
 $black: #444;
 $white: #fff;
-$main-font: Helvetica, Arial, sans-serif;
+$main-font: Liberation Sans, sans-serif;
+$mono-font: Liberation Mono;
+$art-font: Diavlo, serif;
 
 body {
 	font-family: $main-font;
 }
 
 h1 {
+	font-family: $art-font;
 	color: $red;
-	font: 32px/1 $main-font;
+	font: 24px/1 $main-font;
 }
 
 header h1 {
@@ -48,5 +51,16 @@ nav {
 }
 
 p {
-	font: 13px/1.4 $main-font;
+	font: 14px/1.4 $main-font;
+}
+
+h2 {
+	font: 18px/1.4 $main-font;
+	font-weight: bold;
+	text-align: center;
+}
+
+h3 {
+	font: 16px/1.4 $main-font;
+	font-weight: bold;
 }
