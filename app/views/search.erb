@@ -1,0 +1,17 @@
+<h3> Fill the search box with search terms and index</h3>
+<p> If index is left empty will be used default index.</p>
+<form method="POST" action="/results">
+	<label for="search">Search:</label>
+	<input type="search" name="search" value="tss*">
+	<label for="index">Index:</label>
+	<input type="text" name="index" value="a10dic">
+	<label for="output_format">Output Format:</label>
+	<select id="output_format" name="of">
+		<option value="default">Choose an output format</option>
+		<option value="json">JSON</option>
+		<option value="pretty_json">Pretty JSON</option>
+		<option value="table">Table</option>
+		<option value="rawline">Rawline</option>
+	</select>	
+	<input type="submit" value="Search!">
+</form>	

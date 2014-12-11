@@ -7,7 +7,6 @@
 # License::   GNU GPLv3
 
 require 'sinatra'
-require 'slim'
 require 'sass'
 if development?
 	require_relative '../lib/bdf-finder.rb'
@@ -47,25 +46,29 @@ class BdfSI < Sinatra::Base
 
 configure do
 	set :port, 1234
-	set :root, "../app/"
+	#set :root, "../app/"
+	set :root, "/home/swalf/Documenti/BioDataFinder/app/" #Why relative path do no more work? 
 	enable :session
 	
 end
 
 get ('/styles.css') { scss :styles }
+get '/pippo' do
+	erb :pippo
+end
 
 get '/' do
     @title = "BiodataFinder - Home"
-    slim :home
+    erb :home
 end
 
 get '/about' do
-    slim :about
+    erb :about
 end
 get '/search' do
     @title = "BDF search"
     @search
-    slim :search
+    erb :search
 end
 
 post '/results' do
@@ -108,7 +111,7 @@ post '/results' do
 		end	
 #		unless results.any? 
 #			@res_preamble = "Sorry, I can't find anything for this search terms."
-#			slim :results
+#			erb :results
 #		else
 #			@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
 #			unless params[:of] == 'table'
@@ -116,26 +119,26 @@ post '/results' do
 #					@str_res << "<p>Result #{i+1} (score #{obj[:infos][:scores]}):\n</p>"
 #					@str_res << obj[:data]
 #				end
-#				slim :results
+#				erb :results
 #			else
 #				
 #			end			
 #		end
     rescue Faraday::ConnectionFailed => e
     	@es_error = "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-si."
-        slim :es_error
+        erb :es_error
     rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
     	@es_error = "'#{@sindex}' is not a valid index!"
-    	slim :es_error
+    	erb :es_error
     rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
     	@es_error = "'#{@searched}' this is not a valid search (do not fill it only by delimiters)!"
-    	slim :es_error
+    	erb :es_error
     rescue Elasticsearch::Transport::Transport::Error => e
     	@es_error = "ElasticSearch error occurred: #{e.message}"
-    	slim :es_error
+    	erb :es_error
     rescue RuntimeError => e
     	@es_error = e.message
-    	slim :es_error
+    	erb :es_error
     end
 end
 
@@ -146,6 +149,7 @@ end
 run!
 
 end #class
+
 
 
 

@@ -1,5 +1,5 @@
-<h2>You have searched for "<%= #{@searched} %>" in "<%= #{@sindex} %>":</h2>
-<h3><%= #{@res_preamble} %></h3>
+<h2>You have searched for "<%= @searched %>" in "<%= @sindex %>":</h2>
+<h3><%= @res_preamble %></h3>
 <% @tables.each do |table| %>
 	<table width="85%" border="1">
 		<thead>
@@ -20,4 +20,3 @@
 		</tbody>
 	</table>
 <% end %>
-
