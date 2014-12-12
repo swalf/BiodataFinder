@@ -1,4 +1,16 @@
-<h2>You have searched for "<%= @params[:src] %>" in "<%= @params[:idx] %>":</h2>
+<br>
+<form method="GET" action="/search/q">
+	<div style="text-align: center;">
+	    <input type="search" name="src" value="<%= @params[:src] %>" size=30>
+	    <input type="submit" value="Search!">
+	    <label for="index">Index:</label>
+	    <input type="text" name="idx" value="<%= @params[:idx] %>">
+	    <input type=radio name="out" value="table" checked>&nbsp;Inline
+	    <input type=radio name="out" value="json">&nbsp;JSON
+	    <input type=radio name="out" value="pretty_json">&nbsp;Pretty JSON
+	    <hr width="50%">
+	</div>.	
+</form>
 <h3><%= @res_preamble %></h3>
 <% @tables.each do |table| %>
 	<table width="85%" border="1">

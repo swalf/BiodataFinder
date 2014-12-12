@@ -93,7 +93,7 @@ class BdfSI < Sinatra::Base
 				JSON.generate( results )
 			end
 		rescue Faraday::ConnectionFailed => e
-			@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."
+			@es_error = "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-si."
 			erb :es_error
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
 			@es_error = "'#{@sindex}' is not a valid index!"
