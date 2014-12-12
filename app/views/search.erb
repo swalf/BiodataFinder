@@ -1,13 +1,13 @@
 <h2>Welcome in the alpha stage BDF web interface for searching!</h2>
 <h3>Fill the search box with search terms</h3>
 <p>If index is left empty will be used default index.</p>
-<form method="POST" action="/results">
+<form method="GET" action="/search/q">
 	<label for="search">Search:</label>
-	<input type="search" name="search" value="tss*">
+	<input type="search" name="src" value="tss*" size=50><br>
 	<label for="index">Index:</label>
-	<input type="text" name="index" value="a10dic">
+	<input type="text" name="idx" value="a10dic">
 	<label for="output_format">Output Format:</label>
-	<select id="output_format" name="of">
+	<select id="output_format" name="out">
 		<option value="default">Choose an output format</option>
 		<option value="json">JSON</option>
 		<option value="pretty_json">Pretty JSON</option>
