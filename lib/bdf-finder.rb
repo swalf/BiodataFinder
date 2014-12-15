@@ -23,7 +23,9 @@ class Finder
         answers.each_with_index do |answer,i|
             infos = {:scores => scores[i]}
             filepath = answer["position"]["dir"] + '/' + answer["position"]["name"] + answer["position"]["extension"]
+			infos[:filepath] = filepath
             filetype = answer["type"]
+			infos[:filetype] = filetype
             File.open(filepath, "r") do |file|
                 file.seek answer["position"]["line_start_byte"].to_i
                 line = file.gets

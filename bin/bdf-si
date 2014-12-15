@@ -31,8 +31,7 @@ class BdfSI < Sinatra::Base
 
 	configure do
 		set :port, 1234
-		#set :root, "../app/"
-		set :root, "/home/swalf/Documenti/BioDataFinder/app/" #Why relative path do no more work? 
+		set :root, File.expand_path(File.dirname(__FILE__)) + "/../app/"
 		enable :session
 		
 	end
@@ -63,34 +62,36 @@ class BdfSI < Sinatra::Base
 			raise "'#{@params[:idx]}' is not a valid index!" unless $indexes.include? @params[:idx]
 			finder = Finder.new(client, @params[:idx])
 			results = (finder.query @params[:src])
-			@res_preamble = (
-				if results.any?
-					 "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
-				else
-					 "Sorry, I can't find anything for this search terms."
-				end
-			)	
-				
-			case @params[:out]
-			when 'table'
-				@tables = Array.new
-				table = {headers: (results[:objs].first)[:data].keys, data: []}
-				results[:objs].each_with_index do |obj,i|
-					if obj[:data].keys == table[:headers]
-						table[:data] << obj[:data].values
-					else
-						@tables << table
-						table = Hash.new
-						table[:headers] = obj[:data].keys
-						table[:data] = [obj[:data].values]
+			
+			if results[:gen_infos][:nres] != 0	
+				@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
+				case @params[:out]
+				when 'table'
+					@tables = Array.new
+					table = Hash.new
+					table[:headers] = (results[:objs].first)[:data].keys
+					table[:data] =  []
+					results[:objs].each_with_index do |obj,i|
+						row = obj[:data].values
+						if obj[:data].keys == table[:headers]
+							table[:data] << row
+						else
+							@tables << table
+							table = Hash.new
+							table[:headers] = obj[:data].keys
+							table[:data] = [row]
+						end
 					end
+					@tables << table
+					erb :restable
+				when 'pretty_json'
+					JSON.pretty_generate( results )
+				when 'json'
+					JSON.generate( results )
 				end
-				@tables << table
+			else
+				@res_preamble = "Sorry, I can't find anything for this search terms."
 				erb :restable
-			when 'pretty_json'
-				JSON.pretty_generate( results )
-			when 'json'
-				JSON.generate( results )
 			end
 		rescue Faraday::ConnectionFailed => e
 			@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."

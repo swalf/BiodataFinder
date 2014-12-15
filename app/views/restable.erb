@@ -12,23 +12,25 @@
 	</div>.	
 </form>
 <h3><%= @res_preamble %></h3>
-<% @tables.each do |table| %>
-	<table width="85%" border="1">
-		<thead>
-			<tr>
-				<% table[:headers].each do |hdr| %>
-					<th><%= hdr %></th>
-				<% end %>
-			</tr>       
-		</thead>
-		<tbody>
-			<% table[:data].each do |row| %>
+<% unless @tables.nil? %> 
+	<% @tables.each do |table| %>
+		<table width="85%" border="1">
+			<thead>
 				<tr>
-					<% row.each do |cell| %>
-						<td ><%= cell %></td>
+					<% table[:headers].each do |hdr| %>
+						<th><%= hdr %></th>
 					<% end %>
-				</tr>
-			<% end %>       
-		</tbody>
-	</table>
+				</tr>       
+			</thead>
+			<tbody>
+				<% table[:data].each do |row| %>
+					<tr>
+						<% row.each do |cell| %>
+							<td ><%= cell %></td>
+						<% end %>
+					</tr>
+				<% end %>       
+			</tbody>
+		</table>
+	<% end %>
 <% end %>

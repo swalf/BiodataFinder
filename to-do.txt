@@ -1,0 +1,10 @@
+TO-DO list
+===============
+
+1. Migliorare le viste in bdf-si
+2. Permettere le ricerche solo per una lista di file
+3. Permettere l'indicizzazione da bdf-si
+4. Gestire la cancellazione di uno o più file
+5. Implementare l'aggiornamento dei dati
+6. Implementare i suggerimenti di ricerca in bdf-si
+7. Mostrare l'avanzamento nel processo di indicizzazione
