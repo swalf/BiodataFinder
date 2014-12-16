@@ -8,6 +8,8 @@
 
 require 'sinatra'
 require 'sass'
+require 'tempfile'
+
 if development?
 	require_relative '../lib/bdf-finder.rb'
 	#require 'sinatra/reloader'
@@ -84,10 +86,31 @@ class BdfSI < Sinatra::Base
 					end
 					@tables << table
 					erb :restable
+				when 'inline'
+					@resultdata = Array.new
+					results[:objs].each_with_index do |obj,i|
+						data = Hash.new
+						data[:number] = i
+						data[:score] = obj[:infos][:scores]
+						data[:filetype] = obj[:infos][:filetype]
+						data[:filepath] = obj[:infos][:filepath]
+						data[:headers] = obj[:data].keys
+						data[:data] = obj[:data].values
+						@resultdata << data
+					end
+					erb :search_inline
 				when 'pretty_json'
-					JSON.pretty_generate( results )
+					temp_json = Tempfile.new([params[:src],".json"])
+					temp_json.puts  (JSON.pretty_generate results)
+					temp_json.close
+					send_file temp_json.path, :type => 'application/json', :disposition => 'attachment'
 				when 'json'
-					JSON.generate( results )
+					temp_json = Tempfile.new([params[:src],".json"])
+					temp_json.puts  (JSON.generate results)
+					temp_json.close
+					send_file temp_json.path, :type => 'application/json', :disposition => 'attachment'
+				else
+					raise "An unknown output (#{@params[:out]}) has been requested."
 				end
 			else
 				@res_preamble = "Sorry, I can't find anything for this search terms."

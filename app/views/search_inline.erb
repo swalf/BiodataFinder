@@ -10,28 +10,35 @@
 	    <input type=radio name="out" value="json">&nbsp;JSON
 	    <input type=radio name="out" value="pretty_json">&nbsp;Pretty JSON
 	    <hr width="50%">
-	</div>.	
+	</div>
 </form>
 <h3><%= @res_preamble %></h3>
-<% unless @tables.nil? %> 
-	<% @tables.each do |table| %>
-		<table width="85%" border="1">
+<hr width="70%" align="left">
+<% unless @resultdata.nil? %> 
+	<% @resultdata.each do |res| %>
+		<table width="85%">
+			<caption>
+				<b>Result:</b> <%= res[:number] %><br>
+				<b>Score:</b> <%= res[:score] %><br>
+				<b>Type:</b> <%= res[:filetype] %><br>
+				<b>File:</b> <%= res[:filepath] %>
+			</caption>
 			<thead>
 				<tr>
-					<% table[:headers].each do |hdr| %>
+					<% res[:headers].each do |hdr| %>
 						<th><%= hdr %></th>
 					<% end %>
 				</tr>       
 			</thead>
 			<tbody>
-				<% table[:data].each do |row| %>
-					<tr>
-						<% row.each do |cell| %>
-							<td ><%= cell %></td>
-						<% end %>
-					</tr>
-				<% end %>       
+				<tr>
+					<% res[:data].each do |cell| %>
+						<td ><%= cell %></td>
+					<% end %>
+				</tr>       
 			</tbody>
 		</table>
+		<br>
+		<hr width="70%" align="left">
 	<% end %>
 <% end %>

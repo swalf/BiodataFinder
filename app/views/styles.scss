@@ -64,3 +64,30 @@ h3 {
 	font: 16px/1.4 $main-font;
 	font-weight: bold;
 }
+
+table {
+	border-style: hidden;
+	border-collapse: separate;
+	text-align: center;
+	border-spacing: 10px;
+}
+
+td {
+	border-style: hidden;
+	margin: 50px;
+}
+th {
+	border-bottom: 1px;
+	border-bottom-style: solid;
+	border-left-style: hidden;
+	border-right-style: hidden;
+	border-top-style: none;
+	
+	
+}
+caption {
+	font: 12px/1.4 $main-font;
+	text-align: left;
+	margin-bottom: 20px;
+	
+}
