@@ -1,11 +1,12 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.1.1.pre'
-  s.date        = '2014-12-15'
+  s.version     = '0.1.2.pre'
+  s.date        = '2014-12-17'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
   s.add_runtime_dependency "sassy", ["~> 1.0"]
+  s.add_runtime_dependency "progressbar", ["~> 0.9"]
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
   # BiodataFinder
@@ -23,12 +24,14 @@ Gem::Specification.new do |s|
   s.authors     = ["Alessandro Bonfanti"]
   s.email       = 'swalf@users.noreply.github.com'
   s.files       = [
-    "lib/bdf-finder.rb",
-    "lib/bdf-indexer.rb",
-    "bin/bdf-cli",
-    "bin/bdf-si",
-    "lib/biodatafinder/indexercodes.rb",
-    "lib/biodatafinder/reconstructorcodes.rb",
+	"lib/bdf-finder.rb",
+	"lib/bdf-indexer.rb",
+	"bin/bdf-cli",
+	"bin/bdf-si",
+	"lib/biodatafinder/parse_gtf.rb",
+	"lib/biodatafinder/parse_tracking.rb",
+	"lib/biodatafinder/reconstruct_gtf.rb",
+	"lib/biodatafinder/reconstruct_tracking.rb",
 	"app/public/favicon.ico",
 	"app/public/images/logo.png",
 	"app/views/nav.erb", 

@@ -5,7 +5,17 @@ require "elasticsearch"
 require_relative "biodatafinder/reconstructorcodes.rb"
 
 class Finder
+	
+	private
+	
+	Dir.entries(File.dirname(__FILE__) + '/biodatafinder/').each do |entry|
+		if entry =~ /^reconstruct_\w+.rb$/
+			require_relative 'biodatafinder/'.concat(entry)
+		end
+	end
 
+	public
+	
     attr_accessor :client, :index
     
     def initialize (client, index)
@@ -40,9 +50,15 @@ class Finder
     end
     
     def reconstruct (line, type)
-        mn = type + "_code"
-        ReconstructorCodes.const_get(mn).call line, type #Call the appropriate code for recostructoring the json from line data
+		mn = "reconstruct_" + type.downcase
+		if self.respond_to? mn, true # 'true' was added for check private methods
+			self.send mn.to_sym, line, type # Call the appropriate code for recostructoring the json from line data
+		else
+			raise "#Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
+		end
     end
+	
+	
 
 end
 
