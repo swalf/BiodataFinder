@@ -9,6 +9,7 @@
 require 'sinatra'
 require 'sass'
 require 'tempfile'
+require "sinatra/json"
 
 if development?
 	require_relative '../lib/bdf-finder.rb'
@@ -61,14 +62,15 @@ class BdfSI < Sinatra::Base
 			@title = "Results for '#{@params[:src]}' in '#{@params[:idx]}'"
 			
 			client = (Elasticsearch::Client.new)
-			raise "'#{@params[:idx]}' is not a valid index!" unless $indexes.include? @params[:idx]
+			raise Elasticsearch::Transport::Transport::Errors::NotFound.new "'#{@params[:idx]}' is not a valid index!" unless $indexes.include? @params[:idx]
 			finder = Finder.new(client, @params[:idx])
 			results = (finder.query @params[:src])
 			
-			if results[:gen_infos][:nres] != 0	
-				@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
-				case @params[:out]
-				when 'table'
+			
+			case @params[:out]
+			when 'table'
+				if results[:gen_infos][:nres] != 0
+					@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
 					@tables = Array.new
 					table = Hash.new
 					table[:headers] = (results[:objs].first)[:data].keys
@@ -86,7 +88,13 @@ class BdfSI < Sinatra::Base
 					end
 					@tables << table
 					erb :restable
-				when 'inline'
+				else
+					@res_preamble = "Sorry, I can't find anything for this search terms."
+					erb :restable
+				end
+			when 'inline'
+				if results[:gen_infos][:nres] != 0
+					@res_preamble = "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):\n"
 					@resultdata = Array.new
 					results[:objs].each_with_index do |obj,i|
 						data = Hash.new
@@ -99,37 +107,62 @@ class BdfSI < Sinatra::Base
 						@resultdata << data
 					end
 					erb :search_inline
-				when 'pretty_json'
-					temp_json = Tempfile.new([params[:src],".json"])
-					temp_json.puts  (JSON.pretty_generate results)
-					temp_json.close
-					send_file temp_json.path, :type => 'application/json', :disposition => 'attachment'
-				when 'json'
-					temp_json = Tempfile.new([params[:src],".json"])
-					temp_json.puts  (JSON.generate results)
-					temp_json.close
-					send_file temp_json.path, :type => 'application/json', :disposition => 'attachment'
 				else
-					raise "An unknown output (#{@params[:out]}) has been requested."
+					@res_preamble = "Sorry, I can't find anything for this search terms."
+					erb :restable
 				end
+			when 'pretty_json'
+				content_type :json
+				JSON.pretty_generate results
+			when 'json'
+				content_type :json
+				JSON.generate results
 			else
-				@res_preamble = "Sorry, I can't find anything for this search terms."
-				erb :restable
+				raise "An unknown output (#{@params[:out]}) has been requested."
 			end
+			
 		rescue Faraday::ConnectionFailed => e
-			@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."
-			erb :es_error
+			unless ["json", "pretty_json"].include? @params[:out] 
+				@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."
+				erb :es_error
+			else
+				results = { "status" => "error", "gen_infos" => {"error_type" => "No ElasticSearch istance found" }}
+				content_type :json
+				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)		
+			end
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
-			@es_error = "'#{@sindex}' is not a valid index!"
-			erb :es_error
+			unless ["json", "pretty_json"].include? @params[:out] 
+				@es_error = "'#{@params[:idx]}' is not a valid index!"
+				erb :es_error
+			else
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@params[:idx]}' is not a valid index!" }}
+				content_type :json
+				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
+			end
+			
 		rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
-			@es_error = "'#{@searched}' this is not a valid search (do not fill it only by delimiters)!"
-			erb :es_error
+			unless ["json", "pretty_json"].include? @params[:out] 
+				@es_error = "'#{@searched}' this is not a valid search (do not fill it only by delimiters)!"
+				erb :es_error
+			else
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@searched}' is not a valid search" }}
+				content_type :json
+				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
+			end
+			
 		rescue Elasticsearch::Transport::Transport::Error => e
-			@es_error = "ElasticSearch error occurred: #{e.message}"
-			erb :es_error
+			unless ["json", "pretty_json"].include? @params[:out] 
+				@es_error = "ElasticSearch error occurred: #{e.message}"
+				erb :es_error
+			else
+				results = { "status" => "error", "gen_infos" => {"error_type" => "ElasticSearch error: #{e.message}" }}
+				content_type :json
+				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
+			end
+			
 		rescue QueryError => e
 			@es_error = "A problem with your query has occurred: #{e.message}"
+			
 		rescue RuntimeError => e
 			@es_error = e.message
 			erb :es_error
