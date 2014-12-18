@@ -1,14 +1,18 @@
-# indexer
+#!/usr/bin/env ruby
+#
+# This is indexer library for BiodataFinder
+#
+# Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
+# Copyright:: Copyright (c) 2014, Alessandro Bonfanti
+# License::   GNU GPLv3
 
 require 'json'
 require 'elasticsearch'
 require 'progressbar'
-#require_relative 'biodatafinder/indexercodes.rb'
+
 
 
 class Indexer
-	
-	
 
     private
 	
@@ -69,7 +73,7 @@ class Indexer
 		if self.respond_to? mn.to_sym, true # 'true' was added for check private methods
 			@bar = ProgressBar.new("Parsing", (count_prog_step filepath))
 			@bar.set 0
-			self.send mn, filepath
+			self.send mn, filepath # Calls the specific code for the indexing of current filetype
 			@bar.finish
 		else
 			raise "#{filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."

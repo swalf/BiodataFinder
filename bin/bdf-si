@@ -16,8 +16,8 @@ if development?
 else
 	require 'bdf-finder'
 end
-$def_index = "a10dic"
-$indexes = ["a10dic"]
+$def_index = ARGV[0] || "a10dic"
+$indexes = ARGV[1].nil? ? ["a10dic", $def_index].uniq : ARGV[1].split(',')
 
 #Error classes:
 class BdfSIError < RuntimeError

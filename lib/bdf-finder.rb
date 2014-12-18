@@ -1,8 +1,14 @@
-# finder
+#!/usr/bin/env ruby
+#
+# This is finder library for BiodataFinder
+#
+# Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
+# Copyright:: Copyright (c) 2014, Alessandro Bonfanti
+# License::   GNU GPLv3
 
 require "json"
 require "elasticsearch"
-require_relative "biodatafinder/reconstructorcodes.rb"
+
 
 class Finder
 	

@@ -66,6 +66,7 @@ class BDFcli < Thor
     method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
     def index (filepath)
         load_setup
+		
         if options[:index] != nil
             index = options[:index]
         else
@@ -75,13 +76,16 @@ class BDFcli < Thor
                 raise "If you don't specify an espicit index, you have to set default index key with setdef command."
             end
         end
+		
+        client = Elasticsearch::Client.new log: false
+        indexer = Indexer.new client, index
+        indexer.parse filepath, options[:filetype]
+		
 		unless @indexes.include? index
 			@indexes << index
 			store_setup
 		end
-        client = Elasticsearch::Client.new log: false
-        indexer = Indexer.new client, index
-        indexer.parse filepath, options[:filetype]
+		
 		puts "Ok, '#{filepath}' processed" 
     rescue Faraday::ConnectionFailed => e
         puts "It seems that there is no running istance of ElasticSearch, plese start it before use bdf-cli."
@@ -104,11 +108,6 @@ class BDFcli < Thor
             	@indexes = value.split(',') #security check needed
             	store_setup    
             	puts "Indexes = #{@indexes}"
-            when "sinatra_def_output"
-            	raise "'#{value}' is not a valid output format for bdf-si" unless ((value == "rawline") || (value == "pretty_json") || (value == "json"))
-            	@sinatra_def_output = value
-            	store_setup
-            	puts "Default bdf-si output format = #{@sinatra_def_output}"
             else
                 raise "Wrong field!"
             end
@@ -174,7 +173,10 @@ class BDFcli < Thor
 		else
 			raise "Invalid output format"
 		end
+	rescue RuntimeError => e
+		$stderr.puts "ERROR: " + e.message    
 	end
+	
 	
 	desc "delete", "Delete indexes or files"
 	method_option :index, :aliases => "-i", :desc => "Delete index with name OPTION_ARG"

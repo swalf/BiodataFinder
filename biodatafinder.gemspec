@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.1.2.pre'
-  s.date        = '2014-12-17'
+  s.version     = '0.1.3.pre'
+  s.date        = '2014-12-18'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
 	"app/views/es_error.erb",
 	"app/views/not_found.erb", 
 	"app/views/search.erb",
+	"app/views/search_inline.erb",
 	"app/views/layout.erb",
 	"app/views/styles.scss", 
 	"app/views/restable.erb", 
