@@ -17,10 +17,10 @@ if development?
 else
 	require 'bdf-finder'
 end
-$si_port = ARGV[0] || "localhost:1234"
-$host = ARGV[1] || "localhost:9200"
-$def_index = ARGV[2] || "a10dic"
-$indexes = ARGV[3].nil? ? ["a10dic", $def_index].uniq : ARGV[3].split(',')
+$si_port = ARGV[0] || "1234"
+$host = ARGV[1] || "localhost:9220"
+$def_index = ARGV[2] || "ixd19dec14"
+$indexes = ARGV[3].nil? ? ["idx19dec14", $def_index].uniq : ARGV[3].split(',')
 
 
 
