@@ -130,12 +130,15 @@ class BDFcli < Thor
                 raise "Wrong field!"
             end
         end
+		puts @host
+		puts @def_index
+		puts @indexes 
     rescue RuntimeError => e
         $stderr.puts "ERROR: " + e.message    
     end
     
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
-    method_option :index, :aliases => "-i", :desc => "Specifify in which index search will be implemented, '*' for all indeces, elsewere default will be used."
+    method_option :index, :aliases => "-i", :desc => "Specifify in which index search will be implemented, '*' for all indexes, elsewere default will be used."
     method_option :output_format, :aliases => "-f", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (*text)
         load_setup
