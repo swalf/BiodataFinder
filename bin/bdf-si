@@ -17,9 +17,10 @@ if development?
 else
 	require 'bdf-finder'
 end
-$def_index = ARGV[1] || "a10dic"
-$indexes = ARGV[2].nil? ? ["a10dic", $def_index].uniq : ARGV[2].split(',')
+$def_index = ARGV[2] || "a10dic"
+$indexes = ARGV[3].nil? ? ["a10dic", $def_index].uniq : ARGV[3].split(',')
 $host = ARGV[0]
+$si_port = ARGV[1]
 
 #Error classes:
 class BdfSIError < RuntimeError
@@ -34,7 +35,7 @@ class BdfSI < Sinatra::Base
 
 
 	configure do
-		set :port, 1234
+		set :port, $port
 		set :root, File.expand_path(File.dirname(__FILE__)) + "/../app/"
 		enable :session
 		
