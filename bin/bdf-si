@@ -17,8 +17,9 @@ if development?
 else
 	require 'bdf-finder'
 end
-$def_index = ARGV[0] || "a10dic"
-$indexes = ARGV[1].nil? ? ["a10dic", $def_index].uniq : ARGV[1].split(',')
+$def_index = ARGV[1] || "a10dic"
+$indexes = ARGV[2].nil? ? ["a10dic", $def_index].uniq : ARGV[2].split(',')
+$host = ARGV[0]
 
 #Error classes:
 class BdfSIError < RuntimeError
@@ -61,7 +62,7 @@ class BdfSI < Sinatra::Base
 			
 			@title = "Results for '#{@params[:src]}' in '#{@params[:idx]}'"
 			
-			client = (Elasticsearch::Client.new)
+			client = (Elasticsearch::Client.new host: $host, log: false)
 			raise Elasticsearch::Transport::Transport::Errors::NotFound.new "'#{@params[:idx]}' is not a valid index!" unless $indexes.include? @params[:idx]
 			finder = Finder.new(client, @params[:idx])
 			results = (finder.query @params[:src])
