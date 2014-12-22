@@ -6,10 +6,10 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
   s.add_runtime_dependency "sassy", ["~> 1.0"]
-  s.add_runtime_dependency "sass", ["~> 3.4.9"]
+  s.add_runtime_dependency "sass", ["~> 3.4"]
   s.add_runtime_dependency "progressbar", ["~> 0.9"]
-  s.add_runtime_dependency "sinatra", ["~> 1.4.5"]
-  s.add_runtime_dependency "sinatra-contrib", ["~> 1.4.2"]
+  s.add_runtime_dependency "sinatra", ["~> 1.4"]
+  s.add_runtime_dependency "sinatra-contrib", ["~> 1.4"]
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
   # BiodataFinder

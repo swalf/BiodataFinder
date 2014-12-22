@@ -12,13 +12,13 @@ RUN apt-get install -y git
 
 RUN apt-get install -y default-jre
 
-RUN git clone https://github.com/swalf/biodatafinder.git /temp/bdf16/ 
+RUN git clone https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
 RUN mkdir /root/.biodatafinder/ 
 COPY bdf.conf /root/.biodatafinder/bdf.conf
 
 RUN cat /root/.biodatafinder/bdf.conf &&\
-    gem install /temp/bdf15/biodatafinder-0.1.16.pre.gem
+    gem install /temp/bdf/biodatafinder-0.1.16.pre.gem
          
 
          
