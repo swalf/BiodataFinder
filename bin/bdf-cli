@@ -5,7 +5,7 @@
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
-$Version = "0.1.16.pre"
+$Version = "0.1.17.pre"
 
 require 'thor'
 require_relative '../lib/bdf-indexer.rb'
@@ -83,11 +83,13 @@ class BDFcli < Thor
             index = options[:index]
         else
             if @def_index != nil
-                index = options[:index]
+                index = @def_index
             else
                 raise "If you don't specify an espicit index, you have to set default index key with setdef command."
             end
         end
+		
+		puts "Indexing on ES #{@host}, index '#{index}'"
 		
         client = Elasticsearch::Client.new log: false, host: @host
         indexer = Indexer.new client, index
@@ -155,6 +157,9 @@ class BDFcli < Thor
         of = options[:output_format]
         of = 'pretty_json' if of.nil?
 		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
+		
+		puts "Searching on ES #{@host}, index '#{index}'"
+		
         results = finder.query query_text
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
@@ -215,6 +220,7 @@ class BDFcli < Thor
 		if !options[:index].nil?
 			raise "'#{options[:index]}' is not a valid index!" unless @indexes.include? options[:index]
 			client.indices.delete index: options[:index]
+			puts "Delete process on ES #{@host}, index '#{options[:index]}'"
 			@indexes.delete options[:index]
 			puts "OK, '#{options[:index]}' deleted"
 		elsif option[:file].any?
