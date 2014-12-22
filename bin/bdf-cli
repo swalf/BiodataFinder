@@ -5,6 +5,7 @@
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
+$Version = "0.1.15.pre"
 
 require 'thor'
 require_relative '../lib/bdf-indexer.rb'
@@ -220,8 +221,20 @@ class BDFcli < Thor
 	ensure
 		store_setup
 	end
-	  
 	
+	desc "puts_infos", "Show program infos"
+	method_option :version, :aliases => "-v", :desc => "Show version number"
+	def puts_infos
+		if options[:version] != nil
+			puts "BiodataFinder #{$Version}."
+		else 
+			puts(
+				"This is bdf-cli, a command line interface for BiodataFinder"
+			)
+		end
+	end
+		
+	default_task :puts_infos
 		
     
 end

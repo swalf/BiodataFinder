@@ -1,4 +1,4 @@
-# BioDataFinder:0.1.14.pre
+# BioDataFinder:0.1.15.pre
 #
 # VERSION               0.0.1
 
@@ -14,13 +14,22 @@ RUN apt-get install -y git
 
 RUN git clone https://github.com/swalf/biodatafinder.git /temp/bdf14/ 
 
-RUN gem install /temp/bdf14/biodatafinder-0.1.14.pre.gem &&\
+RUN mkdir /root/.biodatafinder/ 
+
+COPY bdf.conf.bak /root/.biodatafinder/bdf.conf
+
+RUN echo '22dec14-12.22'
+
+RUN cat /root/.biodatafinder/bdf.conf &&\
+    gem install /temp/bdf14/biodatafinder-0.1.15.pre.gem &&\
     bdf-cli setdef --host=http://localhost:9200 &&\
-    bdf-cli setdef --indexes=idx19dec14 &&\
-    bdf-cli setdef --def_index=idx19dec14
+    bdf-cli setdef --indexes=idx19dec14,idx22dec14 &&\
+    bdf-cli setdef --def_index=idx22dec14
      
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+
 
 EXPOSE 1234 9200
 
