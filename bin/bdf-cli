@@ -5,7 +5,7 @@
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
-$Version = "0.1.15.pre"
+$Version = "0.1.16.pre"
 
 require 'thor'
 require_relative '../lib/bdf-indexer.rb'
@@ -101,11 +101,14 @@ class BDFcli < Thor
 		puts "Ok, '#{filepath}' processed" 
     rescue Faraday::ConnectionFailed => e
         puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
+	rescue Elasticsearch::Transport::Transport::Errors => e
+		puts "Something in ElasticSearch has failed, parsing process aborted"
+		puts e.message
     rescue RuntimeError => e
         $stderr.puts "ERROR: " + e.message
     end
     
-    desc "setdef --FIELD_NAME=VALUE", "Set the default fields to a value"
+    desc "set --FIELD_NAME=VALUE", "Set the config fields"
     method_option :def_index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
@@ -175,6 +178,9 @@ class BDFcli < Thor
 	#Missing index ES exeption have to be catched	
     rescue Faraday::ConnectionFailed
 		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
+	rescue Elasticsearch::Transport::Transport::Errors => e
+		puts "Something in ElasticSearch has failed, searching process aborted"
+		puts e.message
 	rescue RuntimeError => e
 		$stderr.puts "ERROR: " + e.message    
 	end
@@ -229,7 +235,11 @@ class BDFcli < Thor
 			puts "BiodataFinder #{$Version}."
 		else 
 			puts(
-				"This is bdf-cli, a command line interface for BiodataFinder"
+				"This is bdf-cli, a command line interface for BiodataFinder",
+				"BiodataFinder,  Copyright (C) 2014  Alessandro Bonfanti",
+				"This program comes with ABSOLUTELY NO WARRANTY;",
+				"This is free software, and you are welcome to redistribute it under certain conditions.",
+				"See http://www.gnu.org/licenses/gpl.html GNU_GPLv3 licence for details."			
 			)
 		end
 	end

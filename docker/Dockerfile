@@ -1,37 +1,30 @@
-# BioDataFinder:0.1.15.pre
+# BioDataFinder:0.1.16.pre
 #
-# VERSION               0.0.1
+# VERSION               0.0.2
 
-FROM      ruby:2.1.5
+FROM ruby:2.1.5
 MAINTAINER Alessandro Bonfanti <a.bonfanti9@campus.unimib.it>
 
-RUN apt-get update &&\
-    apt-get upgrade -y 
-
-RUN apt-get install -y elasticsearch 
-
+RUN apt-get -y update &&\
+    apt-get -y upgrade
+    
 RUN apt-get install -y git
 
-RUN git clone https://github.com/swalf/biodatafinder.git /temp/bdf14/ 
+RUN apt-get install -y default-jre
+
+RUN git clone https://github.com/swalf/biodatafinder.git /temp/bdf16/ 
 
 RUN mkdir /root/.biodatafinder/ 
-
-COPY bdf.conf.bak /root/.biodatafinder/bdf.conf
-
-RUN echo '22dec14-12.22'
+COPY bdf.conf /root/.biodatafinder/bdf.conf
 
 RUN cat /root/.biodatafinder/bdf.conf &&\
-    gem install /temp/bdf14/biodatafinder-0.1.15.pre.gem &&\
-    bdf-cli setdef --host=http://localhost:9200 &&\
-    bdf-cli setdef --indexes=idx19dec14,idx22dec14 &&\
-    bdf-cli setdef --def_index=idx22dec14
-     
+    gem install /temp/bdf15/biodatafinder-0.1.16.pre.gem
+         
 
+         
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-
-
-EXPOSE 1234 9200
+EXPOSE 1234 9200 9300
 
 CMD ["/bin/bash"]
 

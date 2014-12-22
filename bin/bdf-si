@@ -8,7 +8,6 @@
 
 require 'sinatra'
 require 'sass'
-require 'tempfile'
 require "sinatra/json"
 
 if development?
@@ -17,7 +16,7 @@ if development?
 else
 	require 'bdf-finder'
 end
-$si_port = ARGV[0] || "1234"
+$si_port = ARGV[0].to_i || 1234
 $host = ARGV[1] || "localhost:9220"
 $def_index = ARGV[2] || "ixd19dec14"
 $indexes = ARGV[3].nil? ? ["idx19dec14", $def_index].uniq : ARGV[3].split(',')
@@ -37,7 +36,7 @@ class BdfSI < Sinatra::Base
 
 
 	configure do
-		set :port, $port
+		set :port, $si_port
 		set :root, File.expand_path(File.dirname(__FILE__)) + "/../app/"
 		enable :session
 		
