@@ -20,50 +20,50 @@ Usage
 Indexing
 .............
 
-Via bdf-cli, indexing a file named 'somestuff.tracking'::
+Via bdf-cli, indexing a file named 'somestuff.tracking'
 
-bdf-cli index somestuff.tracking
+``bdf-cli index somestuff.tracking``
 
 If extension don't respect filetype's norm, you have to specify filetype with -t flag.
 
-bdf-cli index somestuff.bad_ext -t tracking
+``bdf-cli index somestuff.bad_ext -t tracking``
 
-If you want do indexing on a different index, you have to specify indexname vith -i flag.::
+If you want do indexing on a different index, you have to specify indexname vith -i flag.
 
-bdf-cli index somestuff.tracking -i new_index
+``bdf-cli index somestuff.tracking -i new_index``
 
 Searching
 .................
 
-Via bdf-si. Start it vith: ::
+Via bdf-si. Start it vith: 
 
-bdf-si SINATRA_PORT_NUMBER ELASTICSEARCH_ADDRESS DEFAULT_INDEX INDEXES
+``bdf-si SINATRA_PORT_NUMBER ELASTICSEARCH_ADDRESS DEFAULT_INDEX INDEXES``
 
 Go to the search page, fill the requested fields and push "search" ::
 
 Via bdf-cli. 
-Search 'tss7' on default index: ::
+Search 'tss7' on default index: 
 
-bdf-cli search tss7
+``bdf-cli search tss7``
 
-If you want do searching on a different index, you have to specify indexname vith -i flag. ::
+If you want do searching on a different index, you have to specify indexname vith -i flag. 
 
-bdf-cli search tss7 -i new_index
+``bdf-cli search tss7 -i new_index``
 
 Setting
 ....................
 
-Set bdf-cli default index ::
+Set bdf-cli default index 
 
-bdf-cli set --def_index=NEW_DEF_INDEX
+``bdf-cli set --def_index=NEW_DEF_INDEX``
 
-Set bdf-cli indexes ::
+Set bdf-cli indexes 
 
-bdf-cli set --indexes=INDEX1,INDEX2,INDEX3
+``bdf-cli set --indexes=INDEX1,INDEX2,INDEX3``
 
-Watch bdf-cli indexes ::
+Watch bdf-cli indexes 
 
-bdf-cli ilist
+``bdf-cli ilist``
 
 
 
