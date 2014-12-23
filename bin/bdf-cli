@@ -5,7 +5,7 @@
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
-$Version = "0.1.17.pre"
+$Version = "0.1.18.pre"
 
 require 'thor'
 require_relative '../lib/bdf-indexer.rb'
