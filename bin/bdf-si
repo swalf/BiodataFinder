@@ -39,7 +39,7 @@ class BdfSI < Sinatra::Base
 		set :port, $si_port
 		set :root, File.expand_path(File.dirname(__FILE__)) + "/../app/"
 		enable :session
-		
+		set :binding, '0.0.0.0'
 	end
 	
 	get ('/styles.css') { scss :styles }
