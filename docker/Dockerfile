@@ -22,7 +22,7 @@ RUN mkdir /root/.biodatafinder/
 COPY bdf.conf /root/.biodatafinder/bdf.conf
 
 RUN cat /root/.biodatafinder/bdf.conf &&\
-    gem install /temp/bdf/biodatafinder-0.1.17.pre.gem
+    gem install /temp/bdf/biodatafinder-0.1.18.pre.gem
     
 ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
    
