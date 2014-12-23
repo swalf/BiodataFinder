@@ -18,7 +18,7 @@ Usage
 ------------------
 
 Indexing
-.............
+____________________
 
 Via bdf-cli, indexing a file named 'somestuff.tracking'
 
@@ -33,7 +33,7 @@ If you want do indexing on a different index, you have to specify indexname vith
 ``bdf-cli index somestuff.tracking -i new_index``
 
 Searching
-.................
+___________________
 
 Via bdf-si. Start it vith: 
 
@@ -51,7 +51,7 @@ If you want do searching on a different index, you have to specify indexname vit
 ``bdf-cli search tss7 -i new_index``
 
 Setting
-....................
+_________________________
 
 Set bdf-cli default index 
 
