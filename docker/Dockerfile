@@ -12,6 +12,10 @@ RUN apt-get install -y git
 
 RUN apt-get install -y default-jre
 
+RUN apt-get install -y supervisor
+
+RUN apt-get install -y vim
+
 RUN echo '2014-12-22 23:30' && git clone https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
 RUN mkdir /root/.biodatafinder/ 
@@ -20,15 +24,22 @@ COPY bdf.conf /root/.biodatafinder/bdf.conf
 RUN cat /root/.biodatafinder/bdf.conf &&\
     gem install /temp/bdf/biodatafinder-0.1.17.pre.gem
     
-COPY elasticsearch-1.4.2 /elasticsearch1.4
-         
+ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
+   
+RUN cd /opt &&\
+    tar xzvf /opt/elasticsearch-1.4.2.tar.gz &&\
+    mv /opt/elasticsearch-1.4.2 /opt/elasticsearch
 
+COPY elasticsearch.yml /opt/elasticsearch/config/
+
+RUN mkdir -p /usr/share/elasticsearch/db &&\
+    mkdir -p /var/opt/elasticsearch/tmp /var/opt/elasticsearch/log
          
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 1234 9200 9300
 
-CMD ["/bin/bash"]
+CMD ["/usr/bin/supervisord"]
 
 
 
