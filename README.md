@@ -65,6 +65,14 @@ Watch bdf-cli indexes
 
 ``bdf-cli ilist``
 
+Delete a bdf-cli index
+
+``bdf-cli delete -i INDEX_NAME``
+
+
+
+
+
 
 
 

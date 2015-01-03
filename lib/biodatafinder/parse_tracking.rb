@@ -40,6 +40,8 @@ def parse_tracking (filepath)
 				"position" => position
 			}
 			
+			document.each_pair { |key, value| key = value.gsub('_','-') } #substitute underscore with hypens to create an only ES string.
+			
 			docpool << document 
 			
 			if i % poolsize == 0 # When the pool fills the specificated amount, it is loaded and emptied

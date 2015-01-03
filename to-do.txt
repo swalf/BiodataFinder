@@ -11,3 +11,6 @@ TO-DO list
 8. Regolare la quantità di dati ritornati da ES
 9. Localizzare l'interfaccia in bdf-si
 10. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.
+11. Sistemare bug di ricerca sulle successive parti delle stringhe dopo trattini e spazi. 
+12. Permettere la configurazione degli indici da ricercare su bdf-si
+
