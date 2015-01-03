@@ -10,7 +10,7 @@ require 'sinatra'
 require 'sass'
 require "sinatra/json"
 
-$Version = "0.1.18.pre"
+$Version = "0.1.19.pre"
 
 if development?
 	require_relative '../lib/bdf-finder.rb'

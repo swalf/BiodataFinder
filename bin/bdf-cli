@@ -5,7 +5,7 @@
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
-$Version = "0.1.18.pre"
+$Version = "0.1.19.pre"
 
 require 'thor'
 require_relative '../lib/bdf-indexer.rb'
@@ -115,7 +115,7 @@ class BDFcli < Thor
     method_option :def_index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
-    def setdef
+    def set
         load_setup
         options.each_pair do |field,value|  
             case field
