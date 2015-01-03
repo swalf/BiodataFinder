@@ -21,6 +21,7 @@ class BDFcli < Thor
     
     def load_setup
 		unless File.exist? $conf_file
+			Dir.mkdir (File.dirname $conf_file) 
 			File.open($conf_file, "w") do |f|
 				f.puts(
 					"# bdf-cli config file:",
