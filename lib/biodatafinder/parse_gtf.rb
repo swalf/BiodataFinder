@@ -31,7 +31,7 @@ def parse_gtf (filepath)
 				"type" => "Gtf",
 				"position" => position    
 			} 
-			document.each_pair { |key, value| key = value.gsub('_','-') } #substitute underscore with hypens to create an only ES string.
+			document.each_value { |value| value = value.gsub('_','-') } #substitute underscore with hypens to create an only ES string.
 			
 			docpool << document
 			
