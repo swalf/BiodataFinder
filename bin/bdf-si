@@ -185,7 +185,10 @@ class BdfSI < Sinatra::Base
 	end
 	
 	get '/options/s' do
-		response.set_cookie 'def_index', {value: @params[:def_index], max_age: "2592000"}
+		response.set_cookie 'def_idx', {value: @params[:def_idx], max_age: "2592000"}
+		response.set_cookie 'wildcards', {value: @params[:wildcards], max_age: "2592000"}
+		response.set_cookie 'nres', {value: @params[:nres], max_age: "2592000"}
+		response.set_cookie 'def_out', {value: @params[:out], max_age: "2592000"}
 		erb :options_saved
 	end
 	

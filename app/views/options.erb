@@ -1,13 +1,34 @@
 <h2>BDF Options</h2>
 <form method="GET" action="/options/s">
-	<div style="text-align: center;">
-	    <input type="text" name="def_idx" value="<%= $def_index %>">
+	<div style="text-align: left;">
+		<label for="def_idx"><h4>Default Index</h4></label>
+		<br>
+		<% load_setup %>
+		<select name="def_idx">
+			<% @indexes.each do |idx| %>
+				<option value="<%= idx %>">
+					<%= idx %>
+				</option>	
+			<% end %>
+		</select>	
+		<br>
+		<label for="out"><h4>Default Output Format</h4></label>
+		<br>
 	    <input type=radio name="out" value="inline" checked>&nbsp;Inline
+	    <br>
 	    <input type=radio name="out" value="table">&nbsp;Table
+	    <br>
 	    <input type=radio name="out" value="json">&nbsp;JSON
+	    <br>
 	    <input type=radio name="out" value="pretty_json">&nbsp;Pretty JSON
-	    <hr width="50%">
+	    <label for="out"><h4>Max number of results</h4></label>
+	    <label>5-100
+			<input type="range" name="nres" id="nres" min="5" step="1" max="100" value="10" />
+		</label>
+	    <label for="out"><h4>Permits wildcards?</h4></label>
+	    <input name="wildcards" type="checkbox" value="true" checked="checked"/>
+	    <hr width="50%" align="left">
 	    <input type="submit" value="Save!">
-	    <hr width="50%">
+	    <hr width="50%" align="left">
 	</div>.	
 </form>	
