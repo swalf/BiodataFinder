@@ -1,15 +1,17 @@
 <h2>Welcome in the alpha stage BDF web interface for searching!</h2>
+<% load_setup %>
 <form method="GET" action="/search/q">
 	<div style="text-align: center;">
 	    <input type="search" name="src" value="tss*" size=50>
 	    <input type="submit" value="Search!">
 	    <hr width="50%">
 	    <label for="index">Index:</label>
-	    <input type="text" name="idx" value="<%= $def_index %>">
-	    <input type=radio name="out" value="inline" checked>&nbsp;Inline
-	    <input type=radio name="out" value="table">&nbsp;Table
-	    <input type=radio name="out" value="json">&nbsp;JSON
-	    <input type=radio name="out" value="pretty_json">&nbsp;Pretty JSON
+	    <input type="text" name="index" value="<%= request.cookies["def_index"] %>">
+	    <input type=radio name="out" value="inline"<%= (request.cookies['def_out'] == 'inline') ? " checked" : "" %>>&nbsp;Inline
+	    <input type=radio name="out" value="table"<%= (request.cookies['def_out'] == 'table') ? " checked" : "" %>>&nbsp;Table
+	    <input type=radio name="out" value="json"<%= (request.cookies['def_out'] == 'json') ? " checked" : "" %>>&nbsp;JSON
+	    <input type=radio name="out" value="pretty_json"<%= (request.cookies['def_out'] == 'pretty_json') ? " checked" : "" %>>&nbsp;Pretty JSON
 	    <hr width="50%">
 	</div>.	
 </form>	
+

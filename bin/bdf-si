@@ -9,6 +9,7 @@
 require 'sinatra'
 require 'sass'
 require "sinatra/json"
+require "sinatra/cookies"
 
 
 if development?
@@ -35,6 +36,7 @@ end
 
 class BdfSI < Sinatra::Base
 	
+	helpers Sinatra::Cookies
 	include BDFCommon
 
 
@@ -42,7 +44,7 @@ class BdfSI < Sinatra::Base
 	configure do
 		set :port, $si_port
 		set :root, File.expand_path(File.dirname(__FILE__)) + "/../app/"
-		enable :session
+		enable :sessions
 		set :bind, '0.0.0.0'
 	end
 	
@@ -65,14 +67,14 @@ class BdfSI < Sinatra::Base
 			
 			load_setup
 			
-			@params[:idx] = @def_index if @params[:idx].nil?
+			@params[:index] = @def_index if @params[:index].nil?
 			@params[:out] = 'table' if @params[:out].nil?
 			
-			@title = "Results for '#{@params[:src]}' in '#{@params[:idx]}'"
+			@title = "Results for '#{@params[:src]}' in '#{@params[:index]}'"
 			
 			client = (Elasticsearch::Client.new host: $host, log: false)
-			raise Elasticsearch::Transport::Transport::Errors::NotFound.new "'#{@params[:idx]}' is not a valid index!" unless @indexes.include? @params[:idx]
-			finder = Finder.new(client, @params[:idx])
+			raise Elasticsearch::Transport::Transport::Errors::NotFound.new "'#{@params[:index]}' is not a valid index!" unless @indexes.include? @params[:index]
+			finder = Finder.new(client, @params[:index], {size: 50})
 			results = (finder.query @params[:src])
 			
 			
@@ -141,20 +143,20 @@ class BdfSI < Sinatra::Base
 			end
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
 			unless ["json", "pretty_json"].include? @params[:out] 
-				@es_error = "'#{@params[:idx]}' is not a valid index!"
+				@es_error = "'#{@params[:index]}' is not a valid index!"
 				erb :es_error
 			else
-				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@params[:idx]}' is not a valid index!" }}
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@params[:index]}' is not a valid index!" }}
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
 			
 		rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
 			unless ["json", "pretty_json"].include? @params[:out] 
-				@es_error = "'#{@searched}' this is not a valid search (do not fill it only by delimiters)!"
+				@es_error = "'#{@params[:src]}' this is not a valid search (do not fill it only by delimiters)! <#{e.message}>"
 				erb :es_error
 			else
-				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@searched}' is not a valid search" }}
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@params[:src]}' is not a valid search" }}
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
@@ -185,15 +187,29 @@ class BdfSI < Sinatra::Base
 	end
 	
 	get '/options/s' do
-		response.set_cookie 'def_idx', {value: @params[:def_idx], max_age: "2592000"}
+		load_setup
+		raise RuntimeError unless @indexes.include? @params[:def_index]
+		puts "params:", @params.to_s
+		response.set_cookie 'def_index', {value: @params[:def_index], max_age: "2592000"}
 		response.set_cookie 'wildcards', {value: @params[:wildcards], max_age: "2592000"}
 		response.set_cookie 'nres', {value: @params[:nres], max_age: "2592000"}
-		response.set_cookie 'def_out', {value: @params[:out], max_age: "2592000"}
+		response.set_cookie 'def_out', {value: @params[:def_out], max_age: "2592000"}
+		puts "cookies: ", request.cookies.to_s 
 		erb :options_saved
 	end
 	
 	get '/about' do
 	    erb :about
+	end
+	
+	get '/wcookie' do
+		response.set_cookie 'provac', {value: "Ciao!", max_age: "2592000"}
+		
+	end
+	
+	get '/rcookie' do
+		request.cookies['provac']
+		puts "cookies: ", request.cookies.to_s
 	end
 	
 	not_found do

@@ -1,16 +1,16 @@
 TO-DO list
 ===============
 
-1. Migliorare le viste in bdf-si
-2. Permettere le ricerche solo per una lista di file
-3. Permettere l'indicizzazione da bdf-si
-4. Gestire la cancellazione di uno o più file 
-5. Implementare l'aggiornamento dei dati
-6. Implementare i suggerimenti di ricerca in bdf-si
-7. Mostrare l'avanzamento nel processo di indicizzazione [OK]
-8. Regolare la quantità di dati ritornati da ES
-9. Localizzare l'interfaccia in bdf-si
-10. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.
-11. Sistemare bug di ricerca sulle successive parti delle stringhe dopo trattini e spazi. [OK]
-12. Permettere la configurazione degli indici da ricercare su bdf-si
+1. Mostrare l'avanzamento nel processo di indicizzazione [OK]
+2. Sistemare bug di ricerca sulle successive parti delle stringhe dopo trattini e spazi. [OK]
+3. Regolare la quantità di dati ritornati da ES. [OK]
+4. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.[Work in progress]
+5. Permettere la configurazione degli indici da ricercare su bdf-si[Work in progress]
+6. Migliorare le viste in bdf-si
+7. Permettere le ricerche solo per una lista di file
+8. Permettere l'indicizzazione da bdf-si
+9. Gestire la cancellazione di uno o più file 
+10. Implementare l'aggiornamento dei dati
+11. Implementare i suggerimenti di ricerca in bdf-si
+12. Localizzare l'interfaccia in bdf-si
 

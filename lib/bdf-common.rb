@@ -1,6 +1,6 @@
 module BDFCommon
 	
-	$Version = "0.2.1.pre"
+	$Version = "0.2.3.pre"
 	$conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
 	
 	
@@ -13,7 +13,8 @@ module BDFCommon
 					"# sintax KEY:=\"VALUE\"",
 					"def_index:=\"idx\"",
 					"indexes:=\"idx\"",
-					"host:=\"http://localhost:9220\""
+					"host:=\"http://localhost:9220\"",
+					"max_results:=\"50\""
 				)
 			end
 		end
@@ -29,6 +30,8 @@ module BDFCommon
 					@indexes = value.split(',')
 				when "host"
 					@host = value
+				when "max_results"
+					@max_results = value.to_i
 				else 
 					raise "Config file entain wrong fields!"
 				end
@@ -49,7 +52,8 @@ module BDFCommon
 				"# sintax 'key':'value'",
 				"def_index:=\"#{@def_index}\"",
 				"indexes:=\"#{@indexes.join(',')}\"",
-				"host:=\"#{@host}\""
+				"host:=\"#{@host}\"",
+				"max_results:=\"#{@max_results}\""
 			)		
 		end
 	rescue RuntimeError => e

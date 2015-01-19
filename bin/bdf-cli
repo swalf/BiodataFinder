@@ -83,6 +83,9 @@ class BDFcli < Thor
 				@host = value
 				store_setup
 				puts "Host = #{@host}"
+			when "max_results"
+				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
+				@max_results = value.to_i 
             else
                 raise "Wrong field!"
             end
@@ -100,7 +103,7 @@ class BDFcli < Thor
         index = options[:index]
         index = @def_index if index.nil?
         raise "If you don't specify an espicit index, you have to set default index key with setdef command." if index.nil?
-        finder = Finder.new(client, index)
+		finder = Finder.new(client, index, {size: @max_results})
         query_text = text.join(' ')
         of = options[:output_format]
         of = 'pretty_json' if of.nil?

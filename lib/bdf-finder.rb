@@ -24,14 +24,15 @@ class Finder
 	
     attr_accessor :client, :index
     
-    def initialize (client, index)
+    def initialize (client, index, options)
         @client, @index = client, index.downcase
+		@size = options[:size] || 25
     end
 
     def query (query_text)
         # ES generates errors when only '-' is passed as a query 
         query_text.gsub!('-') {|c| c = ' '}
-        results =  @client.search index: @index, body: {query: {query_string: {query: query_text}}}
+        results =  @client.search index: @index, body: {size: @size, query: {query_string: {query: query_text}}} #Tried to set nres to 25
         answers = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
         scores = results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
         gen_infos = {:nres => answers.length, :max_scores => scores.max}
