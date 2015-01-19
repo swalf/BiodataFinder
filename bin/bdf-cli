@@ -65,6 +65,7 @@ class BDFcli < Thor
     method_option :def_index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
+	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
     def set
         load_setup
         options.each_pair do |field,value|  
@@ -86,6 +87,8 @@ class BDFcli < Thor
 			when "max_results"
 				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
 				@max_results = value.to_i 
+				store_setup
+				puts "Max number of results displayed = #{@max_results}"
             else
                 raise "Wrong field!"
             end
