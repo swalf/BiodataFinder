@@ -79,6 +79,9 @@ class Indexer
 			raise "#{filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
 		end
 	end
+	
+	def delete(filepath)
+		
        
 end
 

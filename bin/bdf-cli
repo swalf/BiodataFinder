@@ -44,11 +44,17 @@ class BDFcli < Thor
 		
         client = Elasticsearch::Client.new log: false, host: @host
         indexer = Indexer.new client, index
-        indexer.parse filepath, options[:filetype]
+		
+		if @files.include? filepath
+			indexer.reparse filepath, options[:filetype]
+		else
+			indexer.parse filepath, options[:filetype]
+			@files << filepath
+		end
+        
 		
 		unless @indexes.include? index
 			@indexes << index
-			store_setup
 		end
 		
 		puts "Ok, '#{filepath}' processed" 
@@ -59,6 +65,8 @@ class BDFcli < Thor
 		puts e.message
     rescue RuntimeError => e
         $stderr.puts "ERROR: " + e.message
+	ensure
+		store_setup
     end
     
     desc "set --FIELD_NAME=VALUE", "Set the config fields"
@@ -99,7 +107,8 @@ class BDFcli < Thor
     
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
     method_option :index, :aliases => "-i", :desc => "Specifify in which index search will be implemented, '*' for all indexes, elsewere default will be used."
-    method_option :output_format, :aliases => "-f", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
+	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
+    method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (*text)
         load_setup
         client = Elasticsearch::Client.new log: false, host: @host
@@ -145,18 +154,22 @@ class BDFcli < Thor
 	end
     
 	
-	desc "ilist","List indexes"
-	method_option :output_format, :aliases => "-f", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
-	def ilist
+	desc "list","List indexes or file"
+	method_option :indexes, :aliases => "-i", :desc => "List all indexes"
+	method_option :files, :aliases => "-f", :desc => "List all files"
+	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
+	def list
 		load_setup
 		of = options[:output_format] || 'pretty_json'
+		raise "You have to use only a flag (-i for indexes, -f for files)" unless (options[:indexes].nil? ^ options[:files].nil?)
+		target = options[:indexes].nil? ? @files : @indexes 
 		case of
 		when 'pretty_json'
-			puts JSON.pretty_generate(@indexes)
+			puts JSON.pretty_generate(target)
 		when 'json'
-			puts JSON.generate(@indexes)
+			puts JSON.generate(target)
 		when 'list'
-			puts @indexes
+			puts target
 		else
 			raise "Invalid output format"
 		end

@@ -11,6 +11,7 @@ module BDFCommon
 			@indexes = [@def_index]
 			@host = "http://localhost:9200"
 			@max_results = 25
+			@files = []
 			store_setup
 		else
 			File.open($conf_file,"r") do |file|
@@ -21,6 +22,7 @@ module BDFCommon
 				@indexes = chash['indexes']
 				@host = chash['host']
 				@max_results = chash['max_result']
+				@files = chash['files']
 				puts chash
 			end
 		end
@@ -38,7 +40,8 @@ module BDFCommon
 				def_index: @def_index,
 				indexes: @indexes,
 				host: @host,
-				max_results: @max_results
+				max_results: @max_results,
+				files: @files
 			}
 		)
 		File.open($conf_file,"w") do |file|
