@@ -2,6 +2,7 @@ def parse_gtf (filepath)
 	
 	
 	File.open(filepath, "r") do |file|
+		parse_time = Time.now
 		comments = 0
 		lbs = file.pos # Start line byte
 		docpool = []
@@ -29,7 +30,8 @@ def parse_gtf (filepath)
 				"strand" => strand,
 				"frame" => frame,
 				"type" => "Gtf",
-				"position" => position    
+				"position" => position,
+				"parse_time" => parse_time
 			} 
 			document.each_key { |key| document[key] = document[key].gsub('_','-') if document[key].instance_of? String} #substitute underscore with hypens to create an only ES string.
 			

@@ -80,7 +80,8 @@ class Indexer
 		end
 	end
 	
-	def delete(filepath)
+	def delete_file(filepath)
+	end
 		
        
 end

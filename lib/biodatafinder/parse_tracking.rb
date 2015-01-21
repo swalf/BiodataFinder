@@ -1,5 +1,6 @@
 def parse_tracking (filepath)
 	File.open(filepath, "r") do |file|
+		parse_time = Time.now
 		header = file.readline
 		raise "tracking file format error" if header.split != [
 			"tracking_id", 
@@ -37,7 +38,8 @@ def parse_tracking (filepath)
 				"gene_id" => gene_id,
 				"gene_short_name" => gene_short_name,
 				"type" => "Tracking",
-				"position" => position
+				"position" => position,
+				"parse_time" => parse_time
 			}
 			
 			document.each_key { |key| document[key] = document[key].gsub('_','-') if document[key].instance_of? String } #substitute underscore with hypens to create an only ES string.

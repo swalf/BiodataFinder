@@ -43,6 +43,13 @@ class BDFcli < Thor
 		puts "Indexing on ES #{@host}, index '#{index}'"
 		
         client = Elasticsearch::Client.new log: false, host: @host
+		
+		unless @indexes.include? index
+			# Create new index and set default analyzer to keyword
+			client.indices.create index: index, body: {	"index" => { "analysis" => { "analyzer" => { "default" => { "type" => "keyword" }}}}}
+			@indexes << index
+		end
+		
         indexer = Indexer.new client, index
 		
 		if @files.include? filepath
@@ -53,9 +60,7 @@ class BDFcli < Thor
 		end
         
 		
-		unless @indexes.include? index
-			@indexes << index
-		end
+
 		
 		puts "Ok, '#{filepath}' processed" 
     rescue Faraday::ConnectionFailed => e
