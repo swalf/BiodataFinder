@@ -33,7 +33,7 @@ def parse_gtf (filepath)
 				"position" => position,
 				"parse_time" => parse_time
 			} 
-			document.each_key { |key| document[key] = document[key].gsub('_','-') if document[key].instance_of? String} #substitute underscore with hypens to create an only ES string.
+			#document.each_key { |key| document[key] = document[key].gsub('_','-') if document[key].instance_of? String} #substitute underscore with hypens to create an only ES string.
 			
 			docpool << document
 			

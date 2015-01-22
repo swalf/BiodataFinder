@@ -8,72 +8,29 @@
 
 
 require 'thor'
-require_relative '../lib/bdf-indexer.rb'
-require_relative '../lib/bdf-finder.rb'
-require_relative '../lib/bdf-common.rb'
-require 'elasticsearch'
-
+require_relative '../lib/BDFClient.rb'
 
 
 class BDFcli < Thor
-    @def_index
     
-    private
-    
-	include BDFCommon
 	    
     public
         
     desc "index FILEPATH", "Index a specificated file"
-    method_option :index, :aliases => "-i", :desc => "Specify the index where the input file will be indexed, elsewere were used default"
     method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
     def index (filepath)
-        load_setup
+        bdf_client = BDFClient.new
 		
-        if options[:index] != nil
-            index = options[:index]
-        else
-            if @def_index != nil
-                index = @def_index
-            else
-                raise "If you don't specify an espicit index, you have to set default index key with setdef command."
-            end
-        end
+		#check controls here
+		puts "Indexing '#{filepath}'"
 		
-		puts "Indexing on ES #{@host}, index '#{index}'"
-		
-        client = Elasticsearch::Client.new log: false, host: @host
-		
-		unless @indexes.include? index
-			# Create new index and set default analyzer to keyword
-			client.indices.create index: index, body: {	"index" => { "analysis" => { "analyzer" => { "default" => { "type" => "keyword" }}}}}
-			@indexes << index
-		end
-		
-        indexer = Indexer.new client, index
-		
-		if @files.include? filepath
-			indexer.reparse filepath, options[:filetype]
-		else
-			indexer.parse filepath, options[:filetype]
-			@files << filepath
-		end
-        
-		
-
+		bdf_client.parse(filepath, options[:filetype]
 		
 		puts "Ok, '#{filepath}' processed" 
-    rescue Faraday::ConnectionFailed => e
-        puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
-	rescue Elasticsearch::Transport::Transport::Errors => e
-		puts "Something in ElasticSearch has failed, parsing process aborted"
-		puts e.message
-    rescue RuntimeError => e
-        $stderr.puts "ERROR: " + e.message
-	ensure
-		store_setup
-    end
     
+    end
+    	                 
+		                 
     desc "set --FIELD_NAME=VALUE", "Set the config fields"
     method_option :def_index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
@@ -81,54 +38,39 @@ class BDFcli < Thor
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
     def set
         load_setup
+		bdf_client = BDFClient.new                
         options.each_pair do |field,value|  
             case field
             when "def_index"
-            	raise "'#{value}' is not a valid index!" unless @indexes.include? value
-                @def_index = value
-                store_setup 
-                puts "Default index = #{@def_index}"
-            when "indexes"
-            	@indexes = value.split(',') #security check needed
-            	store_setup    
-            	puts "Indexes = #{@indexes}"
+            	bdf_client.def_index = value  
+                puts "Default index = #{bdf_client.def_index}"
 			when "host"
-				#security control lacks
-				@host = value
-				store_setup
-				puts "Host = #{@host}"
+				
+				bdf_client.host = value
+				puts "Host = #{bdf_client.host}"
 			when "max_results"
 				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
-				@max_results = value.to_i 
-				store_setup
-				puts "Max number of results displayed = #{@max_results}"
+				bdf_client.max_results = value.to_i 
+				puts "Max number of results displayed = #{bdf_client.max_results}"
             else
                 raise "Wrong field!"
             end
-        end
-    rescue RuntimeError => e
-        $stderr.puts "ERROR: " + e.message    
+        end 
     end
     
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
-    method_option :index, :aliases => "-i", :desc => "Specifify in which index search will be implemented, '*' for all indexes, elsewere default will be used."
 	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
     method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (*text)
-        load_setup
-        client = Elasticsearch::Client.new log: false, host: @host
-        index = options[:index]
-        index = @def_index if index.nil?
-        raise "If you don't specify an espicit index, you have to set default index key with setdef command." if index.nil?
-		finder = Finder.new(client, index, {size: @max_results})
-        query_text = text.join(' ')
+        
+		bdf_client = BDFClient.new
+        
         of = options[:output_format]
         of = 'pretty_json' if of.nil?
 		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
 		
-		puts "Searching on ES #{@host}, index '#{index}'"
 		
-        results = finder.query query_text
+        results = bdf_client.search query_text
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
             puts(
@@ -148,14 +90,6 @@ class BDFcli < Thor
 				puts obj[:data].to_s
 			end
         end
-	#Missing index ES exeption have to be catched	
-    rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
-	rescue Elasticsearch::Transport::Transport::Errors => e
-		puts "Something in ElasticSearch has failed, searching process aborted"
-		puts e.message
-	rescue RuntimeError => e
-		$stderr.puts "ERROR: " + e.message    
 	end
     
 	
@@ -164,10 +98,10 @@ class BDFcli < Thor
 	method_option :files, :aliases => "-f", :desc => "List all files"
 	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
 	def list
-		load_setup
+		bdf_client = BDFClient.new
 		of = options[:output_format] || 'pretty_json'
 		raise "You have to use only a flag (-i for indexes, -f for files)" unless (options[:indexes].nil? ^ options[:files].nil?)
-		target = options[:indexes].nil? ? @files : @indexes 
+		target = options[:indexes].nil? ? bdf_client.files : bdf_client.indices 
 		case of
 		when 'pretty_json'
 			puts JSON.pretty_generate(target)
@@ -177,9 +111,7 @@ class BDFcli < Thor
 			puts target
 		else
 			raise "Invalid output format"
-		end
-	rescue RuntimeError => e
-		$stderr.puts "ERROR: " + e.message    
+		end  
 	end
 	
 	
@@ -187,25 +119,19 @@ class BDFcli < Thor
 	method_option :index, :aliases => "-i", :desc => "Delete index with name OPTION_ARG"
 	method_option :file, :aliases => "-f", :desc => "Delete all documents of file with name OPTION_ARG"
 	def delete
-		load_setup
-		client = Elasticsearch::Client.new log: false, host: @host
-		if !options[:index].nil?
-			raise "'#{options[:index]}' is not a valid index!" unless @indexes.include? options[:index]
-			client.indices.delete index: options[:index]
-			puts "Delete process on ES #{@host}, index '#{options[:index]}'"
-			@indexes.delete options[:index]
+		raise "Use only one option '-f' for files, '-i' for indexes!" unless options[:index].nil? ^ options[:file].nil?
+		bdf_client = BDFClient.new
+		if options[:index].any?
+			bdf_client.remove_index options[:index]
 			puts "OK, '#{options[:index]}' deleted"
-		elsif option[:file].any?
-			puts "Sorry, not yet implemented."
+		elsif options[:file].any?
+			bdf_client.delete options[:file]
+			puts "OK, '#{options[:file]}' deleted"
 		end
-	rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
-	rescue RuntimeError => e
-		$stderr.puts "ERROR: " + e.message  
-	ensure
-		store_setup
+	
 	end
 	
+		                
 	desc "puts_infos", "Show program infos"
 	method_option :version, :aliases => "-v", :desc => "Show version number"
 	def puts_infos

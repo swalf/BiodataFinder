@@ -81,6 +81,7 @@ class Indexer
 	end
 	
 	def delete_file(filepath)
+		
 	end
 		
        
