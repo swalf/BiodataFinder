@@ -9,12 +9,18 @@ require 'progressbar'
 
 class BDFClient 
 	
-	@@Version = "0.3.0.pre"
-	@conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
+	@@Version = "0.3.1.pre"
+	
+	def self.version
+		@@Version
+	end
+	
 	
 	attr_reader :poolsize, :conf_file, :host, :max_results, :def_index, :indices, :files
 	
 	def initialize
+		@conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
+		@poolsize = 10000
 		# Load parsing code
 		Dir.entries(File.dirname(__FILE__) + '/biodatafinder/').each do |entry|
 			if entry =~ /^parse_\w+.rb$/
@@ -34,8 +40,8 @@ class BDFClient
 	end
 	
 	def load_setup 
-		unless File.exist? $conf_file
-			Dir.mkdir (File.dirname $conf_file) unless Dir.exist? (File.dirname $conf_file) 
+		unless File.exist? @conf_file
+			Dir.mkdir (File.dirname @conf_file) unless Dir.exist? (File.dirname @conf_file) 
 			@def_index = 'idx'
 			@indices = [@def_index]
 			@host = "http://localhost:9200"
@@ -43,7 +49,7 @@ class BDFClient
 			@files = []
 			store_setup
 		else
-			File.open($conf_file,"r") do |file|
+			File.open(@conf_file,"r") do |file|
 				contents = file.inject("") {|text, line| text+=line}
 				contents.gsub! "\n", " "
 				chash = JSON.parse contents
@@ -73,7 +79,7 @@ class BDFClient
 		     files: @files
 		    }
 		)
-		File.open($conf_file,"w") do |file|
+		File.open(@conf_file,"w") do |file|
 			file.puts storage
 		end
 	rescue RuntimeError => e
@@ -110,18 +116,18 @@ class BDFClient
 	
 	private
 	
-	@poolsize = 10000
+	
 	
 	
 	def count_prog_step (filepath)
 		lines = 0
 		File.foreach(filepath) { lines += 1} # It seems that foreach is faster than alternatives
 		puts "Total Lines: #{lines}"
-		@prog_steps = (lines / @@poolsize).to_i
+		@prog_steps = (lines / @poolsize).to_i
 	end
 	
 	def load_document (document, type)
-		@client.index  index: @index.to_s.downcase, type: type, body: document
+		@ESClient.index  index: @index.to_s.downcase, type: type, body: document
 	end
 	
 	def load_pool (docpool, type)
@@ -129,8 +135,17 @@ class BDFClient
 		docpool.each do |doc|
 			body << { index:  { _index: @index.to_s.downcase, _type: type, data: doc } }
 		end
-		@client.bulk body: body
-		@bar.inc
+		@ESClient.bulk body: body
+		@pbar.inc
+	end
+	
+	def reconstruct (line, type)
+		mn = "reconstruct_" + type.downcase
+		if self.respond_to? mn, true # 'true' was added for check private methods
+			self.send mn.to_sym, line, type # Call the appropriate code for recostructoring the json from line data
+		else
+			raise "#Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
+		end
 	end
 	
 	
@@ -142,10 +157,6 @@ class BDFClient
 			raise "'#{filepath}' has been already parsed, if you would update it, please use 'reparse'"
 		end
 		
-		
-		
-		
-		
 		if filetype == nil
 			mn = "parse_#{File.extname(filepath)[1..-1]}"
 		else
@@ -153,11 +164,11 @@ class BDFClient
 		end
 		
 		if self.respond_to? mn.to_sym, true # 'true' was added for check private methods
-			pbar = ProgressBar.new("Parsing", (count_prog_step filepath))
-			pbar.set 0
+			@pbar = ProgressBar.new("Parsing", (count_prog_step filepath))
+			@pbar.set 0
 			self.send mn, filepath # Calls the specific code for the indexing of current filetype
 			@files << filepath
-			pbar.finish
+			@pbar.finish
 		else
 			raise "#{filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
 		end
@@ -217,7 +228,7 @@ class BDFClient
 			File.open(filepath, "r") do |file|
 				file.seek answer["position"]["line_start_byte"].to_i
 				line = file.gets
-				hashline = self.reconstruct(line, filetype)
+				hashline = reconstruct(line, filetype)
 				objs << {:infos => infos, :data => hashline}
 			end 
 		end
@@ -232,6 +243,6 @@ class BDFClient
 		$stderr.puts "ERROR: " + e.message    
 	end
 	
-
+end
 	
 	

@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.2.4.pre'
-  s.date        = '2015-01-03'
+  s.version     = '0.3.1.pre'
+  s.date        = '2015-01-23'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
@@ -27,9 +27,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Alessandro Bonfanti"]
   s.email       = 'swalf@users.noreply.github.com'
   s.files       = [
-	"lib/bdf-finder.rb",
-	"lib/bdf-indexer.rb",
-	"lib/bdf-common.rb",
+	"lib/BDFClient.rb",
 	"bin/bdf-cli",
 	"bin/bdf-si",
 	"lib/biodatafinder/parse_gtf.rb",

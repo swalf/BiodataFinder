@@ -24,7 +24,7 @@ class BDFcli < Thor
 		#check controls here
 		puts "Indexing '#{filepath}'"
 		
-		bdf_client.parse(filepath, options[:filetype]
+		bdf_client.parse(filepath, options[:filetype])
 		
 		puts "Ok, '#{filepath}' processed" 
     
@@ -37,7 +37,6 @@ class BDFcli < Thor
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
     def set
-        load_setup
 		bdf_client = BDFClient.new                
         options.each_pair do |field,value|  
             case field
@@ -61,7 +60,7 @@ class BDFcli < Thor
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
 	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
     method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
-    def search (*text)
+    def search (query_text)
         
 		bdf_client = BDFClient.new
         
@@ -136,11 +135,11 @@ class BDFcli < Thor
 	method_option :version, :aliases => "-v", :desc => "Show version number"
 	def puts_infos
 		if options[:version] != nil
-			puts "BiodataFinder #{$Version}."
+			puts "BiodataFinder #{BDFClient.version}."
 		else 
 			puts(
 				"This is bdf-cli, a command line interface for BiodataFinder",
-				"BiodataFinder #{$Version},  Copyright (C) 2014  Alessandro Bonfanti",
+				"BiodataFinder #{BDFClient.version},  Copyright (C) 2014  Alessandro Bonfanti",
 				"This program comes with ABSOLUTELY NO WARRANTY;",
 				"This is free software, and you are welcome to redistribute it under certain conditions.",
 				"See http://www.gnu.org/licenses/gpl.html GNU_GPLv3 licence for details."			
