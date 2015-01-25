@@ -12,45 +12,87 @@ require_relative '../lib/BDFClient.rb'
 
 
 class BDFcli < Thor
-    
+	
+	$conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
+			
 	    
     public
+	
+	desc "init_setup (-b SETTINGS || -i)", "Set mandatory initial settings for BDF"
+	method_option :interactive, :aliases => "-i", :desc => "Do initial setup via interactive mode"
+	method_option :batch, :aliases => "-b", :desc => "Do initial setup via batch mode"
+	def init_setup 
+		raise "You have to use only a option (-i for interactive, -b for batch)" unless (options[:interactive].nil? ^ options[:batch].nil?)
+		if options[:batch].nil?
+			settings = Hash.new
+			puts(
+				"Welcome in the interactive setup for BiodataFinder!",
+				"Please insert URL where BDF can find ElasticSearch server: "
+			)
+			settings[:host] = STDIN.gets.chomp
+			#check controls here
+			puts "Insert at most number of results that BDF will return: "
+			settings[:max_results] = STDIN.gets.to_i
+			#check controls here
+			puts "In you have already an ElasticSearch database for BDF please insert its index name, otherwise leave the field empty"
+			idx = STDIN.gets.chomp
+			if idx != ""
+				puts "Sorry, loading of pre-existent database isn't yet implemented"
+			else
+				puts "Do you want a custom name for your BDF database? If yes fill the fields with it, otherwise leave the field empty."
+				settings[:index] = STDIN.gets.downcase.chomp
+				settings[:index] = "biodatafinder_db" if settings[:index] == ""
+				# Shuold be checked if index already exist
+				settings[:files] = []
+				settings[:idx_initialized] = false
+				BDFClient.create_config $conf_file, settings #delete from here and uncomment this same line below when other sections will be ok.
+				puts "Initial settings complete!"
+			end
+		else
+			puts "Sorry batch setup not yet implemented, use for now the interactive one."
+		end
+		
+		#BDFClient.create_config $conf_file, settings
+			
+	end
         
     desc "index FILEPATH", "Index a specificated file"
     method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
     def index (filepath)
-        bdf_client = BDFClient.new
-		
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
+		$bdf_client = BDFClient.new $conf_file
 		#check controls here
 		puts "Indexing '#{filepath}'"
 		
-		bdf_client.parse(filepath, options[:filetype])
+		log = $bdf_client.parse(filepath, options[:filetype])
 		
-		puts "Ok, '#{filepath}' processed" 
+		puts "Ok, '#{filepath}' processed" if log == :ok
     
     end
     	                 
 		                 
     desc "set --FIELD_NAME=VALUE", "Set the config fields"
-    method_option :def_index, :aliases => "-i", :desc => "Set the default index name."
+    method_option :index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
     def set
-		bdf_client = BDFClient.new                
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
+		$bdf_client = BDFClient.new $conf_file
+		
         options.each_pair do |field,value|  
             case field
-            when "def_index"
-            	bdf_client.def_index = value  
-                puts "Default index = #{bdf_client.def_index}"
+            when "index"
+            	$bdf_client.index = value  
+                puts "Default index = #{$bdf_client.def_index}"
 			when "host"
 				
-				bdf_client.host = value
-				puts "Host = #{bdf_client.host}"
+				$bdf_client.host = value
+				puts "Host = #{$bdf_client.host}"
 			when "max_results"
 				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
-				bdf_client.max_results = value.to_i 
-				puts "Max number of results displayed = #{bdf_client.max_results}"
+				$bdf_client.max_results = value.to_i 
+				puts "Max number of results displayed = #{$bdf_client.max_results}"
             else
                 raise "Wrong field!"
             end
@@ -61,15 +103,15 @@ class BDFcli < Thor
 	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
     method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (query_text)
-        
-		bdf_client = BDFClient.new
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
+		$bdf_client = BDFClient.new $conf_file
         
         of = options[:output_format]
         of = 'pretty_json' if of.nil?
 		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
 		
 		
-        results = bdf_client.search query_text
+        results = $bdf_client.search query_text
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
             puts(
@@ -97,10 +139,12 @@ class BDFcli < Thor
 	method_option :files, :aliases => "-f", :desc => "List all files"
 	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
 	def list
-		bdf_client = BDFClient.new
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
+		$bdf_client = BDFClient.new $conf_file
+		
 		of = options[:output_format] || 'pretty_json'
 		raise "You have to use only a flag (-i for indexes, -f for files)" unless (options[:indexes].nil? ^ options[:files].nil?)
-		target = options[:indexes].nil? ? bdf_client.files : bdf_client.indices 
+		target = options[:indexes].nil? ? $bdf_client.files : $bdf_client.indices 
 		case of
 		when 'pretty_json'
 			puts JSON.pretty_generate(target)
@@ -119,13 +163,14 @@ class BDFcli < Thor
 	method_option :file, :aliases => "-f", :desc => "Delete all documents of file with name OPTION_ARG"
 	def delete
 		raise "Use only one option '-f' for files, '-i' for indexes!" unless options[:index].nil? ^ options[:file].nil?
-		bdf_client = BDFClient.new
-		if options[:index].any?
-			bdf_client.remove_index options[:index]
-			puts "OK, '#{options[:index]}' deleted"
-		elsif options[:file].any?
-			bdf_client.delete options[:file]
-			puts "OK, '#{options[:file]}' deleted"
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
+		$bdf_client = BDFClient.new $conf_file
+		if options[:index].is_a? String
+			log = $bdf_client.remove_index options[:index]
+			puts "OK, '#{options[:index]}' deleted" if log == :ok
+		elsif options[:file].is_a? String
+			log = $bdf_client.delete options[:file]
+			puts "OK, '#{options[:file]}' deleted from BiodataFinder database" if log == :ok
 		end
 	
 	end
