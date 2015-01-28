@@ -7,14 +7,43 @@ require 'json'
 require 'elasticsearch'
 require 'progressbar'
 
+class BDFError < RuntimeError
+end
+
+class NoSetupFile < BDFError
+end
+
+class WrongDBVersion < BDFError
+end
+
+class NoESInstance < BDFError
+end
+
+class BDFIndexNotFound < BDFError
+end
+
+class IndexAlreadyOccupied < BDFError
+end
+
+class GenericESError < BDFError
+end
+
+
+
 class BDFClient 
 	
-	@@Version = "0.3.1.pre"
+	@@Version = "0.3.2.pre"
+	@@DBVersion = 1 
 	
 	def self.version
 		@@Version
 	end
 	
+	def self.db_version
+		@@DBVersion
+	end
+	
+	##*** to be deleted
 	def self.create_config (conf_file, chash = {})
 		if File.exist? conf_file
 			raise "'#{conf_file}' already exist, if you would create new setup, please delete it before"
@@ -23,7 +52,7 @@ class BDFClient
 		storage = JSON.pretty_generate(
 			{
 		     index: (chash[:index] || 'idx'),
-		     #indices: (chash[:indices] || []), 
+		     
 		     host: (chash[:host] || "http://localhost:9200"),
 		     max_results: (chash[:max_results] || 25),
 		     files: (chash[:files] || [])
@@ -35,6 +64,7 @@ class BDFClient
 		end
 	end
 	
+	#to be deleted	
 	def self.check_config (conf_file)
 		raise "'#{conf_file}' do not exist!" unless File.exist? conf_file
 		# Do checking...
@@ -45,15 +75,37 @@ class BDFClient
 	
 	attr_reader :poolsize, :conf_file, :host, :max_results, :index, :files
 	
-	def initialize (conf_file)
-		#@conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
-		if (File.exist? conf_file) && (BDFClient.check_config conf_file)
-			@conf_file = conf_file
-		else
-			raise "Config file don't exist or it's wrong formatted!"
-		end
+	def initialize (es_host, bdf_index, idx_exist)
+		@ESClient = Elasticsearch::Client.new log: false, host: es_host
+		@host = es_host
 		@poolsize = 10000
-
+		if idx_exist
+			raise BFDIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
+			load_setup
+		else
+			raise IndexAlreadyOccupied.new "#{bdf_index} already exists!" if (@ESClient.indices.exists index: bdf_index)
+			# New index initialization
+			@ESClient.indices.create index: bdf_index, body: {
+				"index" => { 
+			                "analysis" => { 
+			                               "analyzer" => {
+			                                              "default" => { 
+			                                                            "type" => "custom",
+			                                                            "tokenizer" => "keyword",
+			                                                            "filter" = > "lowercase"
+			                                                           }
+			                                             }
+			                              }
+			               }
+			}
+			# Create config file
+			@ESClient.index  index: bdf_index, type: 'bdf_db', id: "#{bdf_index}_db", body: {
+				files: [],
+				db_version: @@DBVersion
+			}
+			load_setup
+		end		
+		
 		# Load parsing code
 		Dir.entries(File.dirname(__FILE__) + '/biodatafinder/').each do |entry|
 			if entry =~ /^parse_\w+.rb$/
@@ -66,125 +118,12 @@ class BDFClient
 				require_relative 'biodatafinder/'.concat(entry)
 			end
 		end
-		# Loading setup in config file.
-		load_setup
-		@ESClient = Elasticsearch::Client.new log: false, host: host
-		unless @idx_initialized
-			init_index @index
-			store_setup
-		end
-	rescue Faraday::ConnectionFailed => e
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
-		return :no_es_istance
-	end
-	
-	def load_setup 
-		File.open(@conf_file,"r") do |file|
-			contents = file.inject("") {|text, line| text+=line}
-			contents.gsub! "\n", " "
-			chash = JSON.parse contents
-			@host = chash['host']
-			#@indices = chash['indices']
-			@index = chash['index']
-			@idx_initialized = chash['idx_initialized']
-			@max_results = chash['max_results']
-			@files = chash['files']
-		end		
-	rescue RuntimeError => e
-		if e.message == "Config file entain wrong fields!"
-			$stderr.puts "Error: #{exc.message}", "Config file will be not loaded."
-		else
-			$stderr.puts "Error: #{exc.message}"
-		end
-	end
-	
-	def store_setup   
-		storage = JSON.pretty_generate(
-			{
-		     index: @index,
-		     idx_initialized: @idx_initialized,
-		     #indices: @indices,
-		     host: @host,
-		     max_results: @max_results,
-		     files: @files
-		    }
-		)
-		File.open(@conf_file,"w") do |file|
-			file.puts storage
-		end
-	rescue RuntimeError => e
-		$stderr.puts "ERROR: " + e.message      
-	end
-	
-	def max_results= (num)
-		raise "Arg must be a positive number!" unless (num.is_a? Integer) && (num > 0)
-		@max_results = num
-	ensure
-		store_setup
-	end
-	
-	def host= (host)
-		#security control lacks
-		@ESClient = Elasticsearch::Client.new log: false, host: host
-		@host = host
-	rescue Faraday::ConnectionFailed => e
-		puts "It seems that there is no running istance of ElasticSearch running on '#{host}', plese start it before use BioDataFinder"
-	ensure
-		store_setup
-	end
-	
-	def index= (index)
-		raise "Wrong index name, use only a-z,0-9,_" unless index =~ /^\w+$/
-		#check if index already exist
-		# Create new index and set default analyzer to keyword
-		init_index index
-		@index = index
-	ensure
-		store_setup
-	end
 		
-		
-	
-	private
-	
-	def init_index (index)
-		@ESClient.indices.create index: index, body: {	"index" => { "analysis" => { "analyzer" => { "default" => { "type" => "keyword" }}}}}
-		@idx_initialized = true
-		#@indices << index
-		p "#{index} inizializzato!"
+	rescue Faraday::ConnectionFailed => e
+		raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+	rescue Elasticsearch::Transport::Transport::Errors => e
+		raise GenericESError.new "Something in ElasticSearch has failed, BDFClient init process aborted:\n#{e.message}"
 	end
-	
-	def count_prog_step (filepath)
-		lines = 0
-		File.foreach(filepath) { lines += 1} # It seems that foreach is faster than alternatives
-		puts "Total Lines: #{lines}"
-		@prog_steps = (lines / @poolsize).to_i
-	end
-	
-	def load_document (document, type)
-		@ESClient.index  index: @index.to_s.downcase, type: type, body: document
-	end
-	
-	def load_pool (docpool, type)
-		body = []
-		docpool.each do |doc|
-			body << { index:  { _index: @index.to_s.downcase, _type: type, data: doc } }
-		end
-		@ESClient.bulk body: body
-		@pbar.inc
-	end
-	
-	def reconstruct (line, type)
-		mn = "reconstruct_" + type.downcase
-		if self.respond_to? mn, true # 'true' was added for check private methods
-			self.send mn.to_sym, line, type # Call the appropriate code for recostructoring the json from line data
-		else
-			raise "#Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
-		end
-	end
-	
-	
-	public
 	
 	def parse (filepath, filetype = nil)
 		
@@ -207,62 +146,79 @@ class BDFClient
 		else
 			raise "#{filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
 		end
-		return :ok
 	rescue Faraday::ConnectionFailed => e
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
-		return :no_es_istance
+		raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
 	rescue Elasticsearch::Transport::Transport::Errors => e
-		puts "Something in ElasticSearch has failed, parsing process aborted"
-		puts e.message
-		return :generic_es_error
+		raise GenericESError.new "Something in ElasticSearch has failed, parsing process aborted:\n#{e.message}"
 	ensure 
 		store_setup
 	end
 	
 	def reparse (filepath, filetype = nil)
-		log = delete filepath
-		if log == :ok
-			log = parse filepath, filetype
-		end
-		log
-	rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
-		return :no_es_istance
+		delete filepath
+		parse filepath, filetype
 	ensure
 		store_setup
 	end
 	
 	def delete (filepath)
 		raise "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
-		@ESClient.delete_by_query index: @index, body: {"query" => { "term" => { "path" => filepath}}}
+		f_dir = File.dirname filepath
+		f_ext = File.extname filepath
+		f_name = File.basename filepath, f_ext
+		
+		@ESClient.delete_by_query index: @index, body: (
+			{
+		     "query" => {
+		                 "constant_score" => {
+		                                      "filter" => {
+		                                                   "bool" => {
+		                                                              "must" => [
+		                                                                         {
+		                                                                          "term" => { "dir" => f_dir}
+		                                                                         },
+		                                                                         {
+		                                                                          "term" => { "name" => f_name}
+		                                                                         },
+		                                                                         {
+		                                                                          "term" => { "extension" => f_ext}
+		                                                                         }
+		                                                                        ]
+		                                                             }
+		                                                  }                            
+		                                     }
+		                }
+		    }
+		)
+		
 		@files.delete filepath
-		return :ok
-	rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
-		return :no_es_istance
+	rescue Faraday::ConnectionFailed => e
+		raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+	rescue Elasticsearch::Transport::Transport::Errors => e
+		raise GenericESError.new "Something in ElasticSearch has failed, parsing process aborted:\n#{e.message}"
 	ensure
 		store_setup
 	end
 	
-	def remove_index (indexname)
-		raise "'#{indexname}' is not a valid index!" unless @indices.include? indexname
-		puts "Delete process on ES #{@host}, index '#{indexname}'"
+	def erase_bdf_db (indexname)
+		unless (@ESClient.indices.exists index: indexname) && (@ESClient.exists index: indexname, type: 'bdf_db', id: "#{indexname}_db")
+			raise BDFIndexNotFound.new "'#{indexname}' is not a valid index!" 
+		end
 		log = @ESClient.indices.delete index: indexname
 		if log["acknowledged"] == "true"
-			@indices.delete indexname
-			return :ok
+			true
 		else
-			raise "Something has failed in deleting process"
-			return :generic_es_error
+			raise BDFError.new "Something has failed in deleting process of index '#{indexname}'"
 		end
-	rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
-		return :no_es_istance
+	rescue Faraday::ConnectionFailed => e
+		raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+	rescue Elasticsearch::Transport::Transport::Errors => e
+		raise GenericESError.new "Something in ElasticSearch has failed, remove process aborted:\n#{e.message}"
 	end
+	
+	def search (query_text, options = {files_list: :all, max_results: 25})
 		
-	def search (query_text, files_list = :all)
-		
-		es_results =  @ESClient.search index: @index, body: {size: @max_results, query: {query_string: {query: query_text}}} #Tried to set nres to 25
+		es_results =  @ESClient.search index: @index, body: {size: options[:max_results], query: {query_string: {query: query_text}}} 
 		answers = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
 		scores = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
 		gen_infos = {:nres => answers.length, :max_scores => scores.max}
@@ -281,15 +237,67 @@ class BDFClient
 			end 
 		end
 		{:gen_infos => gen_infos, :objs => objs}
-		#Missing index ES exeption have to be catched	
-	rescue Faraday::ConnectionFailed
-		puts "It seems that there is no running istance of ElasticSearch running on '#{@host}', plese start it before use bdf-cli."
+	rescue Faraday::ConnectionFailed => e
+		raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
 	rescue Elasticsearch::Transport::Transport::Errors => e
-		puts "Something in ElasticSearch has failed, searching process aborted"
-		puts e.message
-	rescue RuntimeError => e
-		$stderr.puts "ERROR: " + e.message    
+		raise GenericESError.new "Something in ElasticSearch has failed, searching process aborted:\n#{e.message}"
 	end
+		
+		
+	
+	private
+	
+	
+	def load_setup
+		settings = (@ESClient.get index: @index, type: 'bdf_db', id: "#{@index}_db")["_source"]
+		if settings["db_version"] != @@DBVersion 
+			raise WrongDBVersion.new "'#{@index}_db' version is #{settings["db_version"]} but BioDataFinder #{@@Version} require #{@@DBVersion}."
+		end
+		
+		@files = settings['files']	
+	rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
+		raise NoSetupFile.new "#{@index}_db not found"
+	end
+	
+	
+	def store_setup 
+		body = JSON.pretty_generate(
+			{
+		     files: @files,
+		     db_version: @@DBVersion
+		    }
+		)
+		@ESClient.update  index: @index, type: 'bdf_db', id: "#{@index}_db", body: body
+	end
+	
+	def count_prog_step (filepath)
+		lines = 0
+		File.foreach(filepath) { lines += 1} # It seems that foreach is faster than alternatives
+		@prog_steps = (lines / @poolsize).to_i
+	end
+	
+	def load_document (document, type)
+		@ESClient.index  index: @index.to_s.downcase, type: type, body: document
+	end
+	
+	def load_pool (docpool, type)
+		body = []
+		docpool.each do |doc|
+			body << { index:  { _index: @index.to_s.downcase, _type: type, data: doc } }
+		end
+		@ESClient.bulk body: body
+		@pbar.inc
+	end
+	
+	def reconstruct (line, type)
+		mn = "reconstruct_" + type.downcase
+		if self.respond_to? mn, true # 'true' was added for check private methods
+			self.send mn.to_sym, line, type # Call the appropriate code for recostructoring the json from line data
+		else
+			raise BDFError.new "Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
+		end
+	end
+	
 	
 end
 	
