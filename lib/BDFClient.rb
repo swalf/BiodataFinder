@@ -49,19 +49,7 @@ class BDFClient
 			raise "'#{conf_file}' already exist, if you would create new setup, please delete it before"
 		end
 
-		storage = JSON.pretty_generate(
-			{
-		     index: (chash[:index] || 'idx'),
-		     
-		     host: (chash[:host] || "http://localhost:9200"),
-		     max_results: (chash[:max_results] || 25),
-		     files: (chash[:files] || [])
-		    }
-		)
-		Dir.mkdir (File.dirname conf_file) unless Dir.exist? (File.dirname conf_file) 
-		File.open(conf_file,"w") do |file|
-			file.puts storage
-		end
+		
 	end
 	
 	#to be deleted	
@@ -73,11 +61,12 @@ class BDFClient
 		
 	
 	
-	attr_reader :poolsize, :conf_file, :host, :max_results, :index, :files
+	attr_reader :poolsize, :host, :index, :files
 	
 	def initialize (es_host, bdf_index, idx_exist)
 		@ESClient = Elasticsearch::Client.new log: false, host: es_host
 		@host = es_host
+		@index = bdf_index
 		@poolsize = 10000
 		if idx_exist
 			raise BFDIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
@@ -92,7 +81,7 @@ class BDFClient
 			                                              "default" => { 
 			                                                            "type" => "custom",
 			                                                            "tokenizer" => "keyword",
-			                                                            "filter" = > "lowercase"
+			                                                            "filter" => "lowercase"
 			                                                           }
 			                                             }
 			                              }
@@ -104,7 +93,9 @@ class BDFClient
 				db_version: @@DBVersion
 			}
 			load_setup
+
 		end		
+
 		
 		# Load parsing code
 		Dir.entries(File.dirname(__FILE__) + '/biodatafinder/').each do |entry|

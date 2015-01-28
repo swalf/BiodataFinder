@@ -35,32 +35,37 @@ class BDFcli < Thor
 			settings[:max_results] = STDIN.gets.to_i
 			#check controls here
 			puts "In you have already an ElasticSearch database for BDF please insert its index name, otherwise leave the field empty"
-			idx = STDIN.gets.chomp
-			if idx != ""
-				puts "Sorry, loading of pre-existent database isn't yet implemented"
-			else
+			settings[:index] = STDIN.gets.downcase.chomp
+			if settings[:index] == ""
+				idx_exists = false
 				puts "Do you want a custom name for your BDF database? If yes fill the fields with it, otherwise leave the field empty."
 				settings[:index] = STDIN.gets.downcase.chomp
 				settings[:index] = "biodatafinder_db" if settings[:index] == ""
 				# Shuold be checked if index already exist
-				settings[:files] = []
-				settings[:idx_initialized] = false
-				BDFClient.create_config $conf_file, settings #delete from here and uncomment this same line below when other sections will be ok.
-				puts "Initial settings complete!"
+			else
+				idx_exists = true
 			end
+				
+			BDFClient.new settings[:host], settings[:index], idx_exists
+			
 		else
 			puts "Sorry batch setup not yet implemented, use for now the interactive one."
 		end
 		
-		#BDFClient.create_config $conf_file, settings
-			
+		Dir.mkdir (File.dirname conf_file) unless Dir.exist? (File.dirname $conf_file) 
+		File.open($conf_file,"w") do |file|
+			file.puts (JSON.pretty_generate settings)
+		end
+		puts "Initial settings complete!"
+		#rescue here...
+	rescue RuntimeError => e
+		puts e.message
 	end
         
     desc "index FILEPATH", "Index a specificated file"
     method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
     def index (filepath)
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
-		$bdf_client = BDFClient.new $conf_file
+		load_setup
 		#check controls here
 		puts "Indexing '#{filepath}'"
 		
@@ -77,41 +82,40 @@ class BDFcli < Thor
 	method_option :indexes, :aliases => "-x", :desc => "Set the indexes that bdf have to manage."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
     def set
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
-		$bdf_client = BDFClient.new $conf_file
+		load_setup
 		
         options.each_pair do |field,value|  
             case field
             when "index"
-            	$bdf_client.index = value  
-                puts "Default index = #{$bdf_client.def_index}"
+            	settings[:index] = value  
+				puts "Default index = #{settings[:index]}"
 			when "host"
-				
-				$bdf_client.host = value
-				puts "Host = #{$bdf_client.host}"
+				settings[:host] = value
+				puts "Host = #{settings[:host]}"
 			when "max_results"
 				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
-				$bdf_client.max_results = value.to_i 
-				puts "Max number of results displayed = #{$bdf_client.max_results}"
+				settings[:max_results] = value.to_i 
+				puts "Max number of results displayed = #{settings[:max_results]}"
             else
                 raise "Wrong field!"
             end
         end 
+		File.open($conf_file,"w") do |file|
+			file.puts (JSON.pretty_generate settings)
+		end
     end
     
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
 	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
     method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (query_text)
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
-		$bdf_client = BDFClient.new $conf_file
+		load_setup
         
         of = options[:output_format]
         of = 'pretty_json' if of.nil?
 		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
 		
-		
-        results = $bdf_client.search query_text
+        results = $bdf_client.search query_text, {max_results: $max_results}
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
             puts(
@@ -139,8 +143,7 @@ class BDFcli < Thor
 	method_option :files, :aliases => "-f", :desc => "List all files"
 	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
 	def list
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
-		$bdf_client = BDFClient.new $conf_file
+		load_setup
 		
 		of = options[:output_format] || 'pretty_json'
 		raise "You have to use only a flag (-i for indexes, -f for files)" unless (options[:indexes].nil? ^ options[:files].nil?)
@@ -163,8 +166,7 @@ class BDFcli < Thor
 	method_option :file, :aliases => "-f", :desc => "Delete all documents of file with name OPTION_ARG"
 	def delete
 		raise "Use only one option '-f' for files, '-i' for indexes!" unless options[:index].nil? ^ options[:file].nil?
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file 
-		$bdf_client = BDFClient.new $conf_file
+		load_setup
 		if options[:index].is_a? String
 			log = $bdf_client.remove_index options[:index]
 			puts "OK, '#{options[:index]}' deleted" if log == :ok
@@ -193,6 +195,19 @@ class BDFcli < Thor
 	end
 		
 	default_task :puts_infos
+	
+	private
+	
+	def load_setup 
+		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file
+		File.open($conf_file,"r") do |file|
+			contents = file.inject("") {|text, line| text+=line}
+			contents.gsub! "\n", " "
+			chash = JSON.parse contents
+			$bdf_client = BDFClient.new chash['host'], chash['index'], true
+			$max_results = chash['max_results']
+		end	
+	end
 		
     
 end
