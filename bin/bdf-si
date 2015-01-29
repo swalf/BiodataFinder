@@ -13,16 +13,15 @@ require "sinatra/cookies"
 
 
 if development?
-	require_relative '../lib/bdf-finder.rb'
-	require_relative '../lib/bdf-common.rb'
+	require_relative '../lib/BDFClient.rb'
 	#require 'sinatra/reloader'
 else
-	require 'bdf-finder'
+	require 'bdf_client'
 end
 $si_port = ARGV[0].to_i || 1234
 $host = ARGV[1] || "localhost:9220"
-$def_index = ARGV[2] || "ixd19dec14"
-$indexes = ARGV[3].nil? ? ["idx19dec14", $def_index].uniq : ARGV[3].split(',')
+$index = ARGV[2] || "biodatafinder_01"
+
 
 
 
@@ -67,15 +66,15 @@ class BdfSI < Sinatra::Base
 			
 			load_setup
 			
-			@params[:index] = @def_index if @params[:index].nil?
+			
 			@params[:out] = 'table' if @params[:out].nil?
 			
-			@title = "Results for '#{@params[:src]}' in '#{@params[:index]}'"
+			@title = "Results for '#{@params[:src]}' in '#{$index}'"
 			
-			client = (Elasticsearch::Client.new host: $host, log: false)
-			raise Elasticsearch::Transport::Transport::Errors::NotFound.new "'#{@params[:index]}' is not a valid index!" unless @indexes.include? @params[:index]
-			finder = Finder.new(client, @params[:index], {size: 50})
-			results = (finder.query @params[:src])
+			bdf_client = (BDFClient.new $host, $index, true)
+			
+			
+			results = (bdf_client.search @params[:src], {max_results: 25})
 			
 			
 			case @params[:out]
@@ -137,16 +136,16 @@ class BdfSI < Sinatra::Base
 				@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."
 				erb :es_error
 			else
-				results = { "status" => "error", "gen_infos" => {"error_type" => "No ElasticSearch istance found" }}
+				results = { "status" => "error", "gen_infos" => {"error_type" => "No ElasticSearch instance found" }}
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)		
 			end
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
 			unless ["json", "pretty_json"].include? @params[:out] 
-				@es_error = "'#{@params[:index]}' is not a valid index!"
+				@es_error = "'#{$index}' is not a valid index!"
 				erb :es_error
 			else
-				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{@params[:index]}' is not a valid index!" }}
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{$index}' is not a valid index!" }}
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
@@ -187,10 +186,9 @@ class BdfSI < Sinatra::Base
 	end
 	
 	get '/options/s' do
-		load_setup
-		raise RuntimeError unless @indexes.include? @params[:def_index]
+		
 		puts "params:", @params.to_s
-		response.set_cookie 'def_index', {value: @params[:def_index], max_age: "2592000"}
+		response.set_cookie 'index', {value: $index, max_age: "2592000"}
 		response.set_cookie 'wildcards', {value: @params[:wildcards], max_age: "2592000"}
 		response.set_cookie 'nres', {value: @params[:nres], max_age: "2592000"}
 		response.set_cookie 'def_out', {value: @params[:def_out], max_age: "2592000"}

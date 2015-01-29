@@ -76,17 +76,61 @@ class BDFClient
 			# New index initialization
 			@ESClient.indices.create index: bdf_index, body: {
 				"index" => { 
-			                "analysis" => { 
-			                               "analyzer" => {
-			                                              "default" => { 
-			                                                            "type" => "custom",
-			                                                            "tokenizer" => "keyword",
-			                                                            "filter" => "lowercase"
-			                                                           }
-			                                             }
-			                              }
-			               }
+# 			                "analysis" => { 
+# 			                               "analyzer" => {
+# 			                                              "default" => { 
+# 			                                                            "type" => "custom",
+# 			                                                            "tokenizer" => { 
+# 			                                                                            "type" => "pattern",
+# 			                                                                            "pattern" => ","
+# 			                                                                           },
+# 			                                                            "filter" => "lowercase"
+# 			                                                           }
+# 			                                             }
+# 			                              },
+# 			                "mappings" => {
+# 			                               "_default_" => {
+# 			                                               "properties" => {
+# 			                                                                "dir" => {
+# 			                                                                          "type" => "string",
+# 			                                                                          "analyzer" => "keyword"
+# 			                                                                         },
+# 			                                                                "name" => {
+# 			                                                                           "type" => "string",
+# 			                                                                           "analyzer" => "keyword"
+# 			                                                                          },
+# 			                                                                "extension" => {
+# 			                                                                                "type" => "string",
+# 			                                                                                "analyzer" => "keyword"
+# 			                                                                               }
+# 			                                                               }
+# 			                                              }
+# 			                              }
+ 			               }
 			}
+			@ESClient.indices.put_mapping index: bdf_index, type: '_default_', body: {
+				_default_: {
+			                properties: {
+			                             position: {
+			                                        properties: {
+			                                                     "dir" => {
+			                                                               "type" => "string",
+			                                                               "analyzer" => "keyword"
+			                                                              },
+			                                                     "name" => {
+			                                                                "type" => "string",
+			                                                                "analyzer" => "keyword"
+			                                                               },
+			                                                     "extension" => {
+			                                                                     "type" => "string",
+			                                                                     "analyzer" => "keyword"
+			                                                                    }
+			                                                    }
+			                                       }
+			                            }                             
+						}
+			}	
+			
 			# Create config file
 			@ESClient.index  index: bdf_index, type: 'bdf_db', id: "#{bdf_index}_db", body: {
 				files: [],
@@ -196,7 +240,7 @@ class BDFClient
 			raise BDFIndexNotFound.new "'#{indexname}' is not a valid index!" 
 		end
 		log = @ESClient.indices.delete index: indexname
-		if log["acknowledged"] == "true"
+		if log["acknowledged"] == true
 			true
 		else
 			raise BDFError.new "Something has failed in deleting process of index '#{indexname}'"
@@ -252,13 +296,12 @@ class BDFClient
 	
 	
 	def store_setup 
-		body = JSON.pretty_generate(
-			{
-		     files: @files,
-		     db_version: @@DBVersion
-		    }
-		)
-		@ESClient.update  index: @index, type: 'bdf_db', id: "#{@index}_db", body: body
+		@ESClient.update  index: @index, type: 'bdf_db', id: "#{@index}_db", body: {
+			doc: {
+		          files: @files,
+		          db_version: @@DBVersion
+		         }
+		}
 	end
 	
 	def count_prog_step (filepath)

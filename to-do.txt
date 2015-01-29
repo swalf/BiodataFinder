@@ -4,8 +4,8 @@ TO-DO list
 1. Mostrare l'avanzamento nel processo di indicizzazione [OK]
 2. Sistemare bug di ricerca sulle successive parti delle stringhe dopo trattini e spazi. [OK]
 3. Regolare la quantità di dati ritornati da ES. [OK]
-4. Gestire la cancellazione di uno o più file 
-5. Implementare l'aggiornamento dei dati
+4. Gestire la cancellazione di uno o più file [OK]
+5. Implementare l'aggiornamento dei dati [OK]
 6. Permettere le ricerche solo per una lista di file
 7. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.[Work in progress]
 8. Permettere la configurazione degli indici da ricercare su bdf-si[Work in progress]

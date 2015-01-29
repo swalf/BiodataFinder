@@ -168,11 +168,11 @@ class BDFcli < Thor
 		raise "Use only one option '-f' for files, '-i' for indexes!" unless options[:index].nil? ^ options[:file].nil?
 		load_setup
 		if options[:index].is_a? String
-			log = $bdf_client.remove_index options[:index]
-			puts "OK, '#{options[:index]}' deleted" if log == :ok
+			$bdf_client.erase_bdf_db options[:index]
+			puts "OK, '#{options[:index]}' deleted"
 		elsif options[:file].is_a? String
-			log = $bdf_client.delete options[:file]
-			puts "OK, '#{options[:file]}' deleted from BiodataFinder database" if log == :ok
+			$bdf_client.delete options[:file]
+			puts "OK, '#{options[:file]}' deleted from BiodataFinder database"
 		end
 	
 	end
