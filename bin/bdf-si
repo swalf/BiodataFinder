@@ -13,7 +13,7 @@ require "sinatra/cookies"
 
 
 if development?
-	require_relative '../lib/BDFClient.rb'
+	require_relative '../lib/bdfclient.rb'
 	#require 'sinatra/reloader'
 else
 	require 'bdf_client'
@@ -36,7 +36,7 @@ end
 class BdfSI < Sinatra::Base
 	
 	helpers Sinatra::Cookies
-	include BDFCommon
+	
 
 
 
@@ -71,7 +71,7 @@ class BdfSI < Sinatra::Base
 			
 			@title = "Results for '#{@params[:src]}' in '#{$index}'"
 			
-			bdf_client = (BDFClient.new $host, $index, true)
+			bdf_client = (BiodataFinder::Client.new $host, $index, true)
 			
 			
 			results = (bdf_client.search @params[:src], {max_results: 25})

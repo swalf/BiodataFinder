@@ -8,7 +8,7 @@
 
 
 require 'thor'
-require_relative '../lib/BDFClient.rb'
+require_relative '../lib/bdfclient.rb'
 
 
 class BDFcli < Thor
@@ -46,7 +46,7 @@ class BDFcli < Thor
 				idx_exists = true
 			end
 				
-			BDFClient.new settings[:host], settings[:index], idx_exists
+			BiodataFinder::Client.new settings[:host], settings[:index], idx_exists
 			
 		else
 			puts "Sorry batch setup not yet implemented, use for now the interactive one."
@@ -182,11 +182,11 @@ class BDFcli < Thor
 	method_option :version, :aliases => "-v", :desc => "Show version number"
 	def puts_infos
 		if options[:version] != nil
-			puts "BiodataFinder #{BDFClient.version}."
+			puts "BiodataFinder #{BiodataFinder::Client.version}."
 		else 
 			puts(
 				"This is bdf-cli, a command line interface for BiodataFinder",
-				"BiodataFinder #{BDFClient.version},  Copyright (C) 2014  Alessandro Bonfanti",
+				"BiodataFinder #{BiodataFinder::Client.version},  Copyright (C) 2014  Alessandro Bonfanti",
 				"This program comes with ABSOLUTELY NO WARRANTY;",
 				"This is free software, and you are welcome to redistribute it under certain conditions.",
 				"See http://www.gnu.org/licenses/gpl.html GNU_GPLv3 licence for details."			
@@ -204,7 +204,7 @@ class BDFcli < Thor
 			contents = file.inject("") {|text, line| text+=line}
 			contents.gsub! "\n", " "
 			chash = JSON.parse contents
-			$bdf_client = BDFClient.new chash['host'], chash['index'], true
+			$bdf_client = BiodataFinder::Client.new chash['host'], chash['index'], true
 			$max_results = chash['max_results']
 		end	
 	end
