@@ -1,15 +1,6 @@
 <h2>BDF Options</h2>
 <form method="GET" action="/options/s">
-	<div style="text-align: left;">
-		<label for="def_index"><h4>Default Index</h4></label>
-		<br>
-		<select name="def_index">
-			<% @indexes.each do |idx| %>
-				<option value="<%= idx %>">
-					<%= idx %>
-				</option>	
-			<% end %>
-		</select>	
+	<div style="text-align: left;">	
 		<br>
 		<label for="out"><h4>Default Output Format</h4></label>
 		<br>

@@ -4,8 +4,6 @@
 	    <input type="search" name="src" value="tss*" size=50>
 	    <input type="submit" value="Search!">
 	    <hr width="50%">
-	    <label for="index">Index:</label>
-	    <input type="text" name="index" value="<%= request.cookies["def_index"] %>">
 	    <input type=radio name="out" value="inline"<%= (request.cookies['def_out'] == 'inline') ? " checked" : "" %>>&nbsp;Inline
 	    <input type=radio name="out" value="table"<%= (request.cookies['def_out'] == 'table') ? " checked" : "" %>>&nbsp;Table
 	    <input type=radio name="out" value="json"<%= (request.cookies['def_out'] == 'json') ? " checked" : "" %>>&nbsp;JSON
