@@ -18,10 +18,32 @@ if development?
 else
 	require 'bdf_client'
 end
-$si_port = ARGV[0].to_i || 1234
-$host = ARGV[1] || "localhost:9220"
-$index = ARGV[2] || "biodatafinder_01"
 
+
+i = 0
+set_completed = false
+while !set_completed
+	unless ARGV[i].nil?
+		argn, value = ARGV[i].split('=')
+		case argn
+		when 'port'
+			$si_port = value.to_i
+		when 'es_address'
+			$host = value
+		when 'bdf_index'
+			$index = value
+		end
+	else
+		
+		$si_port = 1234 if $si_port.nil?
+		$host = "localhost:9220" if $host.nil?
+		$index = "biodatafinder_01" if $index.nil?
+		BiodataFinder::Client.new $host, $index, true
+		set_completed = true
+	end
+	i += 1
+end
+			
 
 
 
@@ -64,7 +86,6 @@ class BdfSI < Sinatra::Base
 		begin
 			raise QueryError.new("Malformed query!") if @params[:src].nil?
 			
-			load_setup
 			
 			
 			@params[:out] = 'table' if @params[:out].nil?

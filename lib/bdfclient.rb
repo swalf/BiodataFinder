@@ -67,9 +67,10 @@ module BiodataFinder
 		attr_reader :poolsize, :host, :index, :files
 		
 		def initialize (es_host, bdf_index, idx_exist)
-			@ESClient = Elasticsearch::Client.new log: false, host: es_host
-			@host = es_host
-			@index = bdf_index
+			
+			@ESClient = Elasticsearch::Client.new log: false, host: es_host.to_s
+			@host = es_host.to_s
+			@index = bdf_index.to_s
 			@poolsize = 10000
 			if idx_exist
 				raise BFDIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
