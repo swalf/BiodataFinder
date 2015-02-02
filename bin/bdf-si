@@ -13,7 +13,7 @@ require "sinatra/cookies"
 
 
 if development?
-	require_relative '../lib/bdfclient.rb'
+	require_relative '../lib/biodatafinder.rb'
 	#require 'sinatra/reloader'
 else
 	require 'bdf_client'

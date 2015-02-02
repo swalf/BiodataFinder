@@ -6,9 +6,9 @@ TO-DO list
 3. Regolare la quantità di dati ritornati da ES. [OK]
 4. Gestire la cancellazione di uno o più file [OK]
 5. Implementare l'aggiornamento dei dati [OK]
-6. Permettere le ricerche solo per una lista di file
-7. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.[Work in progress]
-8. Permettere la configurazione degli indici da ricercare su bdf-si[Work in progress]
+6. Nei gtf ci sono problemi nella ricerca nei sottocampi di 'attributes': sistemare.
+7. Permettere le ricerche solo per una lista di file
+8. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.[Work in progress]
 9. Migliorare le viste in bdf-si [OK]
 10. Permettere l'indicizzazione da bdf-si
 11. Implementare i suggerimenti di ricerca in bdf-si

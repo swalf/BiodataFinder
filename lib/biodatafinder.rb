@@ -1,4 +1,6 @@
 #
+# This is BiodataFinder Core Module
+#
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
 # License::   GNU GPLv3
@@ -66,50 +68,21 @@ module BiodataFinder
 		
 		attr_reader :poolsize, :host, :index, :files
 		
-		def initialize (es_host, bdf_index, idx_exist)
+		def initialize (es_host, bdf_index, idx_exists)
 			
 			@ESClient = Elasticsearch::Client.new log: false, host: es_host.to_s
 			@host = es_host.to_s
 			@index = bdf_index.to_s
 			@poolsize = 10000
-			if idx_exist
-				raise BFDIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
+			if idx_exists
+				raise BDFIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
 				load_setup
 			else
 				raise IndexAlreadyOccupied.new "#{bdf_index} already exists!" if (@ESClient.indices.exists index: bdf_index)
 				# New index initialization
 				@ESClient.indices.create index: bdf_index, body: {
 					"index" => { 
-	# 			                "analysis" => { 
-	# 			                               "analyzer" => {
-	# 			                                              "default" => { 
-	# 			                                                            "type" => "custom",
-	# 			                                                            "tokenizer" => { 
-	# 			                                                                            "type" => "pattern",
-	# 			                                                                            "pattern" => ","
-	# 			                                                                           },
-	# 			                                                            "filter" => "lowercase"
-	# 			                                                           }
-	# 			                                             }
-	# 			                              },
-	# 			                "mappings" => {
-	# 			                               "_default_" => {
-	# 			                                               "properties" => {
-	# 			                                                                "dir" => {
-	# 			                                                                          "type" => "string",
-	# 			                                                                          "analyzer" => "keyword"
-	# 			                                                                         },
-	# 			                                                                "name" => {
-	# 			                                                                           "type" => "string",
-	# 			                                                                           "analyzer" => "keyword"
-	# 			                                                                          },
-	# 			                                                                "extension" => {
-	# 			                                                                                "type" => "string",
-	# 			                                                                                "analyzer" => "keyword"
-	# 			                                                                               }
-	# 			                                                               }
-	# 			                                              }
-	# 			                              }
+
 							}
 				}
 				@ESClient.indices.put_mapping index: bdf_index, type: '_default_', body: {
