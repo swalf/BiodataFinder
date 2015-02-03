@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Alessandro Bonfanti"]
   s.email       = 'swalf@users.noreply.github.com'
   s.files       = [
-	"lib/bdfclient.rb",
+	"lib/biodatafinder.rb",
 	"bin/bdf-cli",
 	"bin/bdf-si",
 	"lib/biodatafinder/parse_gtf.rb",

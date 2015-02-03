@@ -16,7 +16,7 @@ RUN apt-get install -y supervisor
 
 RUN apt-get install -y vim
 
-RUN echo '2015-02-02 12:18' && git clone --branch experimental https://github.com/swalf/biodatafinder.git /temp/bdf/ 
+RUN echo '2015-02-03 12:18' && git clone --branch experimental https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
 RUN mkdir /root/.biodatafinder/ 
 COPY bdf.conf /root/.biodatafinder/bdf.conf
