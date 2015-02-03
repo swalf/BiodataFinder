@@ -16,7 +16,7 @@ RUN apt-get install -y supervisor
 
 RUN apt-get install -y vim
 
-RUN echo '2015-02-03 12:18' && git clone --branch experimental https://github.com/swalf/biodatafinder.git /temp/bdf/ 
+RUN echo '2015-02-03 13:07' && git clone --branch experimental https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
 RUN mkdir /root/.biodatafinder/ 
 COPY bdf.conf /root/.biodatafinder/bdf.conf
@@ -27,7 +27,7 @@ RUN cd /temp/bdf/ &&\
 RUN cd /temp/bdf/ &&\
 	ls    
     
-RUN gem install /temp/bdf/biodatafinder-0.3.2.pre.gem
+RUN gem install /temp/bdf/biodatafinder-0.3.3.pre.gem
     
 ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
    

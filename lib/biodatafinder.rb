@@ -37,7 +37,7 @@ module BiodataFinder
 
 	class Client 
 		
-		@@Version = "0.3.2.pre"
+		@@Version = "0.3.3.pre"
 		@@DBVersion = 1 
 		
 		def self.version

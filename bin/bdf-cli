@@ -212,7 +212,7 @@ class BDFcli < Thor
 	private
 	
 	def load_setup 
-		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file
+		raise "No conf file found in '#{$conf_file}'. Please run 'bdf-cli setup' first." unless File.exist? $conf_file
 		File.open($conf_file,"r") do |file|
 			contents = file.inject("") {|text, line| text+=line}
 			contents.gsub! "\n", " "
