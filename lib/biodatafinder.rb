@@ -40,7 +40,7 @@ module BiodataFinder
 
 	class Client 
 		
-		@@Version = "0.3.3.pre"
+		@@Version = "0.3.4.pre"
 		@@DBVersion = 1 
 		
 		def self.version
@@ -51,22 +51,6 @@ module BiodataFinder
 			@@DBVersion
 		end
 		
-		##*** to be deleted
-		def self.create_config (conf_file, chash = {})
-			if File.exist? conf_file
-				raise "'#{conf_file}' already exist, if you would create new setup, please delete it before"
-			end
-
-			
-		end
-		
-		#to be deleted	
-		def self.check_config (conf_file)
-			raise "'#{conf_file}' do not exist!" unless File.exist? conf_file
-			# Do checking...
-			true
-		end
-			
 		
 		
 		attr_reader :poolsize, :host, :index, :files

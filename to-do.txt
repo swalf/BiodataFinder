@@ -7,11 +7,12 @@ TO-DO list
 4. Gestire la cancellazione di uno o più file [OK]
 5. Implementare l'aggiornamento dei dati [OK]
 6. Sistemare i campi gtf [OK]
-7. Permettere le ricerche solo per una lista di file
+7. Permettere le ricerche solo per una lista di file, di cartelle o per tipo di file [OK]
 8. Integrare la gestione delle sessioni per l'utilizzo di bdf-si e la gestione delle opzioni.[Work in progress]
 9. Migliorare le viste in bdf-si [OK]
 10. Gestire le tabelle annidate in bdf-si
 11. Permettere l'indicizzazione da bdf-si
 12. Implementare i suggerimenti di ricerca in bdf-si
 13. Localizzare l'interfaccia in bdf-si
+**. Collaudo generale
 
