@@ -23,7 +23,7 @@ class BDFcli < Thor
 	method_option :bdf_index, :aliases => "-b", :desc => "Set the default index name."
 	method_option :es_address, :aliases => "-a", :desc => "Set where BDF can find ElasticSearch."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
-	method_option :idx_exists, :aliases => "-e", :desc => "Say if index specificated already exist ('true'/'false' values accepted)"
+	method_option :idx_exists, :type => :boolean, :aliases => "-e", :desc => "If it appears, index specificated already exists."
 	def setup 
 		
 		settings = Hash.new
@@ -54,7 +54,7 @@ class BDFcli < Thor
 			#Batch mode
 			settings = batch_setting(options)
 			puts settings.to_s
-			raise "Wrong parameters! You must specify 'es_address', 'max_results', 'bdf_index', 'idx_exists' parameters." if (settings[:host].nil? || settings[:max_results].nil? || settings[:index].nil? || settings[:idx_exists].nil?)
+			raise "Wrong parameters! You must specify 'es_address', 'max_results', 'bdf_index' parameters." if (settings[:host].nil? || settings[:max_results].nil? || settings[:index].nil?)
 		end
 		
 		BiodataFinder::Client.new settings[:host], settings[:index], settings[:idx_exists]
@@ -96,11 +96,13 @@ class BDFcli < Thor
     	                 
 		                 
     desc "set --FIELD_NAME=VALUE", "Set the config fields"
-    method_option :index, :aliases => "-i", :desc => "Set the default index name."
-	method_option :host, :aliases => "-h", :desc => "Set the default ES host."
+	method_option :bdf_index, :aliases => "-b", :desc => "Set the default index name."
+	method_option :es_address, :aliases => "-a", :desc => "Set where BDF can find ElasticSearch."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
+	method_option :idx_exists, :type => :boolean, :aliases => "-e", :desc => "If it appears, index specificated already exists."
     def set
 		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file
+		raise "'idx_exists' take no sense unless in pair with 'bdf_index' option" if options[:idx_exists] and !options[:bdf_index] 
 		settings = Hash.new
 		File.open($conf_file,"r") do |file|
 			contents = file.inject("") {|text, line| text+=line}
@@ -110,7 +112,7 @@ class BDFcli < Thor
 		end
 		settings.update batch_setting(options)
 		puts settings.to_s
-		BiodataFinder::Client.new settings[:host], settings[:index], settings[:idx_exists]
+		BiodataFinder::Client.new settings[:es_address], settings[:bdf_index], settings[:idx_exists]
 		settings[:idx_exists] = true
 		File.open($conf_file,"w") do |file|
 			file.puts (JSON.pretty_generate settings)
@@ -123,7 +125,7 @@ class BDFcli < Thor
 	method_option :files, :type => :array, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
 	method_option :directories, :type => :array, :aliases => "-d", :desc => "Specifify in which directories search will be implemented, elsewere alls will be used."
 	method_option :filetype, :aliases => "-t", :desc => "Specify if you want results only from a specific filetype, elsewere alls will be used."
-	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
+	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'object', 'pretty_json'."
     def search (query_text)
 		load_setup
         
@@ -160,23 +162,19 @@ class BDFcli < Thor
 	end
     
 	
-	desc "list","List indexes or file"
-	method_option :indexes, :aliases => "-i", :desc => "List all indexes"
-	method_option :files, :aliases => "-f", :desc => "List all files"
+	desc "filelist","List files indenxed by Biodatafinder"
 	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
-	def list
+	def filelist
 		load_setup
 		
 		of = options[:output_format] || 'pretty_json'
-		raise "You have to use only a flag (-i for indexes, -f for files)" unless (options[:indexes].nil? ^ options[:files].nil?)
-		target = options[:indexes].nil? ? $bdf_client.files : $bdf_client.indices 
 		case of
 		when 'pretty_json'
-			puts JSON.pretty_generate(target)
+			puts JSON.pretty_generate($bdf_client.files)
 		when 'json'
-			puts JSON.generate(target)
+			puts JSON.generate($bdf_client.files)
 		when 'list'
-			puts target
+			puts $bdf_client.files
 		else
 			raise "Invalid output format"
 		end  
@@ -257,7 +255,7 @@ class BDFcli < Thor
 				settings[:max_results] = value.to_i 
 				puts "Max number of results displayed = #{settings[:max_results]}"
 			when 'idx_exists'
-				settings[:idx_exists] = value == 'false' ? false : true
+				settings[:idx_exists] = value 
 			else
 				raise "Wrong field!"
 			end
