@@ -74,15 +74,22 @@ class BDFcli < Thor
         
     desc "index FILEPATH", "Index a specificated file"
     method_option :filetype, :aliases => "-t", :desc => "Specify the filetype, elsewere indexer will try to deduce filetype from extension"
-    def index (filepath)
+	method_option :bulk, :type => :array, :aliases => "-b", :desc => "Index more than a file at time. usage: '-b \"FILEPATH1\" \"FILEPATH2\" ...'"
+    def index (filepath = nil)
 		load_setup
 		#check controls here
-		puts "Indexing '#{filepath}'"
+		raise "You must specify filepath! Usage: 'bdf-cli index 'FILEPATH'" if filepath.nil? and options[:bulk].length == 0
+		if filepath.nil? 
+			to_be_parsed = options[:bulk]
+		else
+			to_be_parsed = [filepath]
+		end
+		to_be_parsed.each do |tbp_filepath|
+			puts "Indexing '#{tbp_filepath}'"
+			log = $bdf_client.parse(tbp_filepath, options[:filetype])
+			puts "Ok, '#{tbp_filepath}' processed" if log == :ok
+		end
 		
-		log = $bdf_client.parse(filepath, options[:filetype])
-		
-		puts "Ok, '#{filepath}' processed" if log == :ok
-    
 	rescue RuntimeError => e
 		puts e.message
 	end

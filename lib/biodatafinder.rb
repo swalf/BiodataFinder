@@ -262,21 +262,8 @@ module BiodataFinder
 					
 				end
 				
-				p "files_array:", files_array.to_s
-
-				es_results = @ESClient.search(
-					index: @index,
-					body: {
-				           size: options[:max_results],
-				           query: {
-				                   query_string: {query: query_text}
-				                  },
-				           filter: {
-				                    or: files_array
-				                  }
-				          }
-				)
-			
+				filter = {or: files_array}
+				                 
 			elsif options[:dir_list] != :all
 				raise WrongArgument.new ":dir_list must be :all or an array filled by some indexed files" unless options[:dir_list].is_a? Array 
 				dir_array = []
@@ -297,22 +284,24 @@ module BiodataFinder
 					
 				end
 				p dir_array.to_s
-				es_results = @ESClient.search(
-					index: @index,
-					type: (options[:filetype] == :all ? nil : options[:filetype]),				    
-					body: {
-				           size: options[:max_results],
-				           query: {
-				                   query_string: {query: query_text}
-				                  },
-				           filter: {
-				                    or: dir_array
-				                   }
-				          }
-				)
+				filter = {or: dir_array}
+				 
 			else
-				es_results =  @ESClient.search index: @index, body: {size: options[:max_results], query: {query_string: {query: query_text}}} 
+				filter = {}
 			end
+			
+			es_results = @ESClient.search(
+				index: @index,
+				type: (options[:filetype] == :all ? nil : options[:filetype]),				    
+				body: {
+			           size: options[:max_results],
+			           query: {
+			                   query_string: {query: query_text}
+			                  },
+			           filter: filter
+			          }
+			)
+			
 			answers = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
 			scores = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
 			gen_infos = {:nres => answers.length, :max_scores => scores.max}

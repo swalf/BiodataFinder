@@ -42,9 +42,6 @@ def parse_gtf (filepath)
 				lbs = file.pos # Refresh data for the new line.
 				
 				document = {
-					#"seqname" => seqname,
-					#"source" => source,
-					#"feature" => feature,
 					"attributes" => attributes,				
 					# Metadata
 					"type" => "Gtf",
