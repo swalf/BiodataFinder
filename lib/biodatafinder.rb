@@ -31,6 +31,9 @@ module BiodataFinder
 
 	class GenericESError < BDFError
 	end
+	
+	class WrongArgument < BDFError
+	end
 
 
 		
@@ -174,7 +177,7 @@ module BiodataFinder
 		end
 		
 		def delete (filepath)
-			raise "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
+			raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
 			f_dir = File.dirname filepath
 			f_ext = File.extname filepath
 			f_name = File.basename filepath, f_ext
@@ -228,9 +231,88 @@ module BiodataFinder
 			raise GenericESError.new "Something in ElasticSearch has failed, remove process aborted:\n#{e.message}"
 		end
 		
-		def search (query_text, options = {files_list: :all, max_results: 25})
+		def search (query_text, options = {})
+			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25}.update options
+			p 'f-list:', options[:files_list]
+			if options[:files_list] != :all
+				raise WrongArgument.new ":filelist must be :all or an array filled by some indexed files" unless options[:files_list].is_a? Array 
+				files_array = []
+				options[:files_list].each do |filepath|
+					raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
+					f_ext = File.extname filepath
+				    f_name = File.basename filepath, f_ext
+				    f_dir = File.dirname filepath   
+					files_array << (
+						{ bool: 
+					      { must: 
+					        [
+					         { term: 
+					           { dir: f_dir }
+					         },
+					         { term: 
+					           { name: f_name}
+					         },
+					         { term: 
+					           { extension: f_ext}
+					         }
+					        ]
+					      }
+					    }
+					)
+					
+				end
+				
+				p "files_array:", files_array.to_s
+
+				es_results = @ESClient.search(
+					index: @index,
+					body: {
+				           size: options[:max_results],
+				           query: {
+				                   query_string: {query: query_text}
+				                  },
+				           filter: {
+				                    or: files_array
+				                  }
+				          }
+				)
 			
-			es_results =  @ESClient.search index: @index, body: {size: options[:max_results], query: {query_string: {query: query_text}}} 
+			elsif options[:dir_list] != :all
+				raise WrongArgument.new ":dir_list must be :all or an array filled by some indexed files" unless options[:dir_list].is_a? Array 
+				dir_array = []
+				options[:dir_list].each do |dirpath|
+					#raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
+					
+					dir_array << (
+						{ bool: 
+					      { must: 
+					        [
+					         { term: 
+					           { dir: (dirpath.chomp '/') }
+					         }
+					        ]
+					      }
+					    }
+					)
+					
+				end
+				p dir_array.to_s
+				es_results = @ESClient.search(
+					index: @index,
+					type: (options[:filetype] == :all ? nil : options[:filetype]),				    
+					body: {
+				           size: options[:max_results],
+				           query: {
+				                   query_string: {query: query_text}
+				                  },
+				           filter: {
+				                    or: dir_array
+				                   }
+				          }
+				)
+			else
+				es_results =  @ESClient.search index: @index, body: {size: options[:max_results], query: {query_string: {query: query_text}}} 
+			end
 			answers = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
 			scores = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
 			gen_infos = {:nres => answers.length, :max_scores => scores.max}

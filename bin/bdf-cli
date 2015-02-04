@@ -19,7 +19,7 @@ class BDFcli < Thor
     public
 	
 	desc "setup (--'OPTION_NAME'='OPTION_VALUE')", "Set mandatory initial settings for BDF"
-	method_option :interactive, :aliases => "-i", :desc => "Do initial setup via interactive mode"
+	method_option :interactive, :type => :boolean, :aliases => "-i", :desc => "Do initial setup via interactive mode"
 	method_option :bdf_index, :aliases => "-b", :desc => "Set the default index name."
 	method_option :es_address, :aliases => "-a", :desc => "Set where BDF can find ElasticSearch."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
@@ -27,7 +27,7 @@ class BDFcli < Thor
 	def setup 
 		
 		settings = Hash.new
-		unless options[:interactive].nil?
+		if options[:interactive]
 			#Interactive mode
 			puts(
 				"Welcome in the interactive setup for BiodataFinder!",
@@ -67,7 +67,7 @@ class BDFcli < Thor
 		puts "Initial settings complete!"
 		#rescue here...
 	rescue BiodataFinder::BDFIndexNotFound => e
-		puts "Ciao", e.message
+		puts e.message
 	rescue RuntimeError => e
 		puts e.message
 	end
@@ -113,16 +113,22 @@ class BDFcli < Thor
 	end
     
     desc "search TEXT TO SEARCH", "Search a string of text in an index"
-	method_option :files, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
-    method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
+	method_option :files, :type => :array, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
+	method_option :directories, :type => :array, :aliases => "-d", :desc => "Specifify in which directories search will be implemented, elsewere alls will be used."
+	method_option :filetype, :aliases => "-t", :desc => "Specify if you want results only from a specific filetype, elsewere alls will be used."
+	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'rawline', 'pretty_output'."
     def search (query_text)
 		load_setup
         
         of = options[:output_format]
         of = 'pretty_json' if of.nil?
 		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
+		opt_hash = {max_results: $max_results}
+		opt_hash.update files_list: options[:files] unless options[:files].nil?
+		opt_hash.update dir_list: options[:directories] unless (options[:directories].nil? || !options[:files].nil?)
+		opt_hash.update filetype: options[:filetype] unless options[:filetype].nil?
+		results = $bdf_client.search query_text, opt_hash
 		
-        results = $bdf_client.search query_text, {max_results: $max_results}
         puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
         results[:objs].each_with_index do |obj,i|
             puts(
@@ -192,9 +198,9 @@ class BDFcli < Thor
 	
 		                
 	desc "puts_infos", "Show program infos"
-	method_option :version, :aliases => "-v", :desc => "Show version number"
+	method_option :version, :type => :boolean, :aliases => "-v", :desc => "Show version number"
 	def puts_infos
-		if options[:version] != nil
+		if options[:version]
 			puts "BiodataFinder #{BiodataFinder::Client.version}."
 		else 
 			puts(
@@ -206,6 +212,13 @@ class BDFcli < Thor
 			)
 		end
 	end
+	
+	desc "cipolla", "Cipolla rulez"
+	method_option :curry, :type => :array, :aliases => "-c", :desc => "some curry"
+	def cipolla
+		options[:curry].each { |curry| puts curry}
+	end
+		
 		
 	default_task :puts_infos
 	
