@@ -217,16 +217,16 @@ module BiodataFinder
 		
 		def search (query_text, options = {})
 			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25}.update options
-			p 'f-list:', options[:files_list]
+			
 			if options[:files_list] != :all
 				raise WrongArgument.new ":filelist must be :all or an array filled by some indexed files" unless options[:files_list].is_a? Array 
-				files_array = []
+				part_filters = []
 				options[:files_list].each do |filepath|
 					raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
 					f_ext = File.extname filepath
 				    f_name = File.basename filepath, f_ext
 				    f_dir = File.dirname filepath   
-					files_array << (
+					part_filters << (
 						{ bool: 
 					      { must: 
 					        [
@@ -246,15 +246,31 @@ module BiodataFinder
 					
 				end
 				
-				filter = {or: files_array}
+				filter = {or: part_filters}
 				                 
 			elsif options[:dir_list] != :all
 				raise WrongArgument.new ":dir_list must be :all or an array filled by some indexed files" unless options[:dir_list].is_a? Array 
+				# This code select full dirpaths of the bdf files that match with one element of the list  
 				dir_array = []
 				options[:dir_list].each do |dirpath|
-					#raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
-					
-					dir_array << (
+					input_tokens = dirpath.split '/'
+					@files.each do |file|
+						file_tokens = file.split '/'
+						same_flag = true
+						input_tokens.length.times do |i|
+							if input_tokens[i] != file_tokens[i]
+								same_flag = false
+								break
+							end
+						end
+						dir_array << (File.dirname file) if same_flag
+					end
+				end
+				dir_array.uniq!
+				# This code build partial filter for every selected directory 
+				part_filters = []		
+				dir_array.each do |dirpath|
+					part_filters << (
 						{ bool: 
 					      { must: 
 					        [
@@ -265,10 +281,9 @@ module BiodataFinder
 					      }
 					    }
 					)
-					
 				end
-				p dir_array.to_s
-				filter = {or: dir_array}
+				
+				filter = {or: part_filters}
 				 
 			else
 				filter = {}
