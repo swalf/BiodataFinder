@@ -47,17 +47,19 @@
 			</tbody>
 		</table>	
 	    <br>
+	    <h4>Filetype</h4>
+	    <br>
+	    <select name="filetype">
+			<option value="ALL" checked>All filetypes</option>
+			<% @filetypes.each do |type| %>
+				<option value="<%= type %>"><%= type %></option>
+			<% end %>
+		</select>
 	    
 	    <label for="nres"><h4>Max number of results</h4></label>
 	    <label>5-100
 			<input type="range" name="nres" id="nres" min="5" step="1" max="100" value="10" />
 		</label>
-	    <label for="out"><h4>Permits wildcards?</h4></label>
-	    <input name="wildcards" type="checkbox" value="true" checked="checked"/>
-	    <hr width="50%" align="left">
 	</div>.	
 </form>	
-<form method="GET" action="/export/s">
-	<input type="submit" value="Export settings to json">
-	<hr width="50%" align="left">
-</form>
+

@@ -40,7 +40,7 @@ module BiodataFinder
 
 	class Client 
 		
-		@@Version = "0.3.4.pre"
+		@@Version = "0.3.5.pre"
 		@@DBVersion = 1 
 		
 		def self.version
@@ -53,7 +53,7 @@ module BiodataFinder
 		
 		
 		
-		attr_reader :poolsize, :host, :index, :files
+		attr_reader :poolsize, :host, :index, :files, :supported_types
 		
 		def initialize (es_host, bdf_index, idx_exists)
 			
@@ -104,11 +104,12 @@ module BiodataFinder
 
 			end		
 
-			
+			@supported_types = []
 			# Load parsing code
 			Dir.entries(File.dirname(__FILE__) + '/biodatafinder/').each do |entry|
 				if entry =~ /^parse_\w+.rb$/
 					require_relative 'biodatafinder/'.concat(entry)
+					@supported_types << entry[6..-4] # Add name of supported filetype. 
 				end
 			end
 			# Load reconstruct code

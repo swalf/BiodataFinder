@@ -217,13 +217,6 @@ class BDFcli < Thor
 			)
 		end
 	end
-	
-	desc "cipolla", "Cipolla rulez"
-	method_option :curry, :type => :array, :aliases => "-c", :desc => "some curry"
-	def cipolla
-		options[:curry].each { |curry| puts curry}
-	end
-		
 		
 	default_task :puts_infos
 	
