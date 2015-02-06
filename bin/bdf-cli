@@ -13,7 +13,7 @@ require_relative '../lib/biodatafinder.rb'
 
 class BDFcli < Thor
 	
-	$conf_file = ENV['HOME'] + "/.biodatafinder/bdf.conf"
+	$conf_file = ENV['HOME'] + "/.biodatafinder/bdf-cli.conf"
 			
 	    
     public

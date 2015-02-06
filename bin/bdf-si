@@ -19,30 +19,37 @@ else
 	require 'bdf_client'
 end
 
+$conf_file = ENV['HOME'] + "/.biodatafinder/bdf-si.conf"
+
+if File.exists? $conf_file
+	File.open($conf_file,"r") do |file|
+		contents = file.inject("") {|text, line| text+=line}
+		contents.gsub! "\n", " "
+		chash = JSON.parse contents
+		$si_port = chash['si_port']
+		$es_address = chash['es_address']
+		$bdf_index = chash['bdf_index']
+		$max_results = chash['max_results']
+	end
+end
 
 i = 0
-set_completed = false
-while !set_completed
-	unless ARGV[i].nil?
-		argn, value = ARGV[i].split('=')
-		case argn
-		when 'port'
-			$si_port = value.to_i
-		when 'es_address'
-			$host = value
-		when 'bdf_index'
-			$index = value
-		end
-	else
-		
-		$si_port = 1234 if $si_port.nil?
-		$host = "localhost:9220" if $host.nil?
-		$index = "biodatafinder_01" if $index.nil?
-		BiodataFinder::Client.new $host, $index, true
-		set_completed = true
+while !ARGV[i].nil?
+	argn, value = ARGV[i].split('=')
+	case argn
+	when 'port'
+		$si_port = value.to_i
+	when 'es_address'
+		$es_address = value
+	when 'bdf_index'
+		$bdf_index = value
+	when 'max_results'
+		$max_results = value.to_i
 	end
 	i += 1
 end
+raise "I can't load all needed settings from config file or commandline." unless $si_port && $es_address && $bdf_index && $max_results 
+BiodataFinder::Client.new $es_address, $bdf_index, true
 			
 
 
@@ -90,12 +97,22 @@ class BdfSI < Sinatra::Base
 			
 			@params[:out] = 'table' if @params[:out].nil?
 			
-			@title = "Results for '#{@params[:src]}' in '#{$index}'"
+			@title = "Results for '#{@params[:src]}' in '#{$bdf_index}'"
 			
-			bdf_client = (BiodataFinder::Client.new $host, $index, true)
-			
-			
-			results = (bdf_client.search @params[:src], {max_results: 25})
+			bdf_client = (BiodataFinder::Client.new $es_address, $bdf_index, true)
+			$max_results = params[:nres].to_i unless params[:nres].nil?
+			opt_hash = {max_results: $max_results}
+			case params[:filter] 
+			when 'filelist'
+				opt_hash.update files_list: @params[:files]
+				p '++++++++++++++++++++++filelist'
+				p @params[:files].to_s
+			when 'dirlist'
+				opt_hash.update dir_list: @params[:directories]
+				p '++++++++++++++++++++++dirlist'
+				p @params[:directories].to_s
+			end
+			results = (bdf_client.search @params[:src], opt_hash)
 			
 			
 			case @params[:out]
@@ -163,10 +180,10 @@ class BdfSI < Sinatra::Base
 			end
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
 			unless ["json", "pretty_json"].include? @params[:out] 
-				@es_error = "'#{$index}' is not a valid index!"
+				@es_error = "'#{$bdf_index}' is not a valid index!"
 				erb :es_error
 			else
-				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{$index}' is not a valid index!" }}
+				results = { "status" => "error", "gen_infos" => {"error_type" => "'#{$bdf_index}' is not a valid index!" }}
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
@@ -201,15 +218,23 @@ class BdfSI < Sinatra::Base
 	end
 	
 	
-	get '/options' do
-		@title = "BDF Options"
-		erb :options
+	get '/msettings' do
+		@title = "BDF - Advenced search"
+		bdf_client = (BiodataFinder::Client.new $es_address, $bdf_index, true)
+		@files = bdf_client.files
+		@directories = @files.inject [] {|acc,file| acc << (File.dirname file)}
+		@directories.uniq!
+		erb :msettings
+	end
+	
+	get '/export/s' do
+		@params.to_s
 	end
 	
 	get '/options/s' do
 		
 		puts "params:", @params.to_s
-		response.set_cookie 'index', {value: $index, max_age: "2592000"}
+		response.set_cookie 'index', {value: $bdf_index, max_age: "2592000"}
 		response.set_cookie 'wildcards', {value: @params[:wildcards], max_age: "2592000"}
 		response.set_cookie 'nres', {value: @params[:nres], max_age: "2592000"}
 		response.set_cookie 'def_out', {value: @params[:def_out], max_age: "2592000"}

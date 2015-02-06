@@ -1,0 +1,63 @@
+<h2>More settings</h2>
+<form method="GET" action="/search/q">
+	<input type="search" name="src" value="" size=50>
+	<input type="submit" value="Search!">
+	<div style="text-align: left;">	
+		<label for="out"><h4>Default Output Format</h4></label>
+		<br>
+	    <input type=radio name="def_out" value="inline" checked>&nbsp;Inline
+	    <input type=radio name="def_out" value="table">&nbsp;Table
+	    <input type=radio name="def_out" value="json">&nbsp;JSON
+	    <input type=radio name="def_out" value="pretty_json">&nbsp;Pretty JSON
+	    
+	    <label for="filter"><h4>In which files BDF will seek?</h4></label>
+		<br>
+		<table width="55%" border="0">
+			<thead>
+				<tr>
+					<th>
+						<input type=radio name="filter" value="all" checked>&nbsp;All files
+					</th>
+					<th>
+						<input type=radio name="filter" value="filelist">&nbsp;Only in this selected files
+					</th>
+					<th>
+						<input type=radio name="filter" value="dirlist">&nbsp;Only in this selected directories
+					</th>  
+				<tr>
+			<thead>
+			<tbody>
+				<tr>
+					<td></td>
+					<td>
+						<select multiple name="files[]">
+							<% @files.each do |file| %>
+								<option value="<%= file %>"><%= file %></option>
+							<% end %>
+						</select> 
+					</td>
+					<td>
+						<select multiple name="directories[]">
+							<% @directories.each do |dir| %>
+								<option value="<%= dir %>"><%= dir %></option>
+							<% end %>
+						</select> 
+					</td>
+				</tr>
+			</tbody>
+		</table>	
+	    <br>
+	    
+	    <label for="nres"><h4>Max number of results</h4></label>
+	    <label>5-100
+			<input type="range" name="nres" id="nres" min="5" step="1" max="100" value="10" />
+		</label>
+	    <label for="out"><h4>Permits wildcards?</h4></label>
+	    <input name="wildcards" type="checkbox" value="true" checked="checked"/>
+	    <hr width="50%" align="left">
+	</div>.	
+</form>	
+<form method="GET" action="/export/s">
+	<input type="submit" value="Export settings to json">
+	<hr width="50%" align="left">
+</form>
