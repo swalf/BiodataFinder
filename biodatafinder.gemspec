@@ -45,7 +45,7 @@ Gem::Specification.new do |s|
 	"app/views/styles.scss", 
 	"app/views/restable.erb", 
 	"app/views/about.erb",
-	"app/views/options.erb"
+	"app/views/msettings.erb"
   ]
 
   s.executables << 'bdf-cli'
