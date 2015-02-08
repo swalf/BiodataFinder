@@ -41,7 +41,7 @@ module BiodataFinder
 	
 	class Client 
 		
-		@@Version = "0.3.6.pre"
+		@@Version = "0.3.7.pre"
 		@@DBVersion = 1.1 
 		
 		def self.version
@@ -125,7 +125,7 @@ module BiodataFinder
 		
 		def parse (filepath, filetype = nil)
 			
-			if @files.include? filepath
+			if @files.include? File.expand_path filepath
 				raise "'#{filepath}' has been already parsed, if you would update it, please use 'reparse'"
 			end
 			
@@ -138,11 +138,11 @@ module BiodataFinder
 			if self.respond_to? mn.to_sym, true # 'true' was added for check private methods
 				@pbar = ProgressBar.new("Parsing", (count_prog_step filepath))
 				@pbar.set 0
-				self.send mn, filepath # Calls the specific code for the indexing of current filetype
+				self.send mn, (File.expand_path filepath) # Calls the specific code for the indexing of current filetype
 				@files << filepath
 				@pbar.finish
 			else
-				raise "#{filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
+				raise "#{File.expand_path filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
 			end
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
@@ -322,6 +322,8 @@ module BiodataFinder
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, searching process aborted:\n#{e.message}"
+		rescue Errno::ENOENT
+			raise "It seems that indexed file '#{filepath}' has been deleted from disk, please remove it from BDF database before searching"
 		end
 			
 			
