@@ -34,18 +34,17 @@ class BDFcli < Thor
 				"Please insert URL where BDF can find ElasticSearch server: "
 			)
 			settings[:host] = STDIN.gets.chomp
-			#check controls here
+			
 			puts "Insert at most number of results that BDF will return: "
 			settings[:max_results] = STDIN.gets.to_i
-			#check controls here
+			
 			puts "In you have already an ElasticSearch database for BDF please insert its index name, otherwise leave the field empty"
 			settings[:index] = STDIN.gets.downcase.chomp
 			if settings[:index] == ""
-				idx_exists = false
+				settings[:idx_exists] = false
 				puts "Do you want a custom name for your BDF database? If yes fill the fields with it, otherwise leave the field empty."
 				settings[:index] = STDIN.gets.downcase.chomp
 				settings[:index] = "biodatafinder_db" if settings[:index] == ""
-				# Shuold be checked if index already exist
 			else
 				settings[:idx_exists] = true
 			end
@@ -77,7 +76,7 @@ class BDFcli < Thor
 	method_option :bulk, :type => :array, :aliases => "-b", :desc => "Index more than a file at time. usage: '-b \"FILEPATH1\" \"FILEPATH2\" ...'"
     def index (filepath = nil)
 		load_setup
-		#check controls here
+		
 		raise "You must specify filepath! Usage: 'bdf-cli index 'FILEPATH'" if filepath.nil? and options[:bulk].length == 0
 		if filepath.nil? 
 			to_be_parsed = options[:bulk]
@@ -106,7 +105,7 @@ class BDFcli < Thor
 		settings = Hash.new
 		File.open($conf_file,"r") do |file|
 			contents = file.inject("") {|text, line| text+=line}
-			contents.gsub! "\n", " "
+			contents.gsub! "\n", " " # This line is added because JSON don't parse 'pretty' contents.
 			settings = JSON.parse contents, {symbolize_names: true}
 
 		end

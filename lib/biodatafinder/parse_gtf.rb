@@ -2,7 +2,7 @@ def parse_gtf (filepath)
 	
 	
 	File.open(filepath, "r") do |file|
-		parse_time = Time.now
+		
 		comments = 0
 		lbs = file.pos # Start line byte
 		docpool = []
@@ -45,8 +45,7 @@ def parse_gtf (filepath)
 					"attributes" => attributes,				
 					# Metadata
 					"type" => "Gtf",
-					"position" => position,
-					"parse_time" => parse_time
+					"position" => position
 				} 
 				
 				docpool << document

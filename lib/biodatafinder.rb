@@ -10,6 +10,8 @@ require 'elasticsearch'
 require 'progressbar'
 
 module BiodataFinder
+	
+	# Error classes
 
 	class BDFError < RuntimeError
 	end
@@ -35,13 +37,12 @@ module BiodataFinder
 	class WrongArgument < BDFError
 	end
 
-
-		
-
+	
+	
 	class Client 
 		
-		@@Version = "0.3.5.pre"
-		@@DBVersion = 1 
+		@@Version = "0.3.6.pre"
+		@@DBVersion = 1.1 
 		
 		def self.version
 			@@Version
@@ -60,39 +61,36 @@ module BiodataFinder
 			@ESClient = Elasticsearch::Client.new log: false, host: es_host.to_s
 			@host = es_host.to_s
 			@index = bdf_index.to_s
-			@poolsize = 10000
+			@poolsize = 10000 # This setting say how much frequently bdf launch bulk call by ES APIs
 			if idx_exists
 				raise BDFIndexNotFound.new "#{bdf_index} don't exist or it's not a valid BioDataFinder index!" unless (@ESClient.indices.exists index: bdf_index)
 				load_setup
 			else
 				raise IndexAlreadyOccupied.new "#{bdf_index} already exists!" if (@ESClient.indices.exists index: bdf_index)
 				# New index initialization
-				@ESClient.indices.create index: bdf_index, body: {
-					"index" => { 
-
-							}
-				}
+				@ESClient.indices.create index: bdf_index
+				# Mappings for fields that have to be threated literally
 				@ESClient.indices.put_mapping index: bdf_index, type: '_default_', body: {
 					_default_: {
+						properties: {
+							position: {
 								properties: {
-											position: {
-														properties: {
-																	"dir" => {
-																			"type" => "string",
-																			"analyzer" => "keyword"
-																			},
-																	"name" => {
-																				"type" => "string",
-																				"analyzer" => "keyword"
-																			},
-																	"extension" => {
-																					"type" => "string",
-																					"analyzer" => "keyword"
-																					}
-																	}
-													}
-											}                             
+									dir: {
+										type: "string",
+										analyzer: "keyword"
+									},
+									name: {
+										type: "string",
+										analyzer: "keyword"
+									},
+									extension: {
+										type: "string",
+										analyzer: "keyword"
+									}
+								}
 							}
+						}                             
+					}
 				}	
 				
 				# Create config file
@@ -168,26 +166,26 @@ module BiodataFinder
 			f_name = File.basename filepath, f_ext
 			
 			@ESClient.delete_by_query index: @index, body: (
-				{
-				"query" => {
-							"constant_score" => {
-												"filter" => {
-															"bool" => {
-																		"must" => [
-																					{
-																					"term" => { "dir" => f_dir}
-																					},
-																					{
-																					"term" => { "name" => f_name}
-																					},
-																					{
-																					"term" => { "extension" => f_ext}
-																					}
-																					]
-																		}
-															}                            
-												}
-							}
+				{ query: 
+					{ constant_score: 
+						{ filter: 
+							{ bool: 
+								{ must:
+									[
+										{ term: 
+											{ dir: f_dir}
+										},
+										{ term: 
+											{ name: f_name}
+										},
+										{ term:
+											{ extension: f_ext}
+										}
+									]
+								}
+							}                            
+						}
+					}
 				}
 			)
 			

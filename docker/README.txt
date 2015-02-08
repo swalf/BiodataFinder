@@ -9,3 +9,4 @@ run:
 docker run -P -v /tmp/es/db:/usr/share/elasticsearch/db -v /tmp/es/tmp:/var/opt/elasticsearch/tmp -v /tmp/es/log:/var/opt/elasticsearch/log -i -t swalf/biodatafinder
 
 
+/usr/share/elasticsearch/db/elasticsearch/nodes/0/indices/dove6es
