@@ -24,6 +24,9 @@ module BiodataFinder
 
 	class NoESInstance < BDFError
 	end
+	
+	class IndexedFileNotFound < BDFError
+	end
 
 	class BDFIndexNotFound < BDFError
 	end
@@ -126,7 +129,7 @@ module BiodataFinder
 		def parse (filepath, filetype = nil)
 			
 			if @files.include? File.expand_path filepath
-				raise "'#{filepath}' has been already parsed, if you would update it, please use 'reparse'"
+				raise BDFError.new "'#{filepath}' has been already parsed, if you would update it, please use 'reparse'"
 			end
 			
 			if filetype == nil
@@ -307,23 +310,27 @@ module BiodataFinder
 			answers.each_with_index do |answer,i|
 				infos = {:scores => scores[i]}
 				filepath = answer["position"]["dir"] + '/' + answer["position"]["name"] + answer["position"]["extension"]
+				
 				infos[:filepath] = filepath
 				filetype = answer["type"]
 				infos[:filetype] = filetype
-				File.open(filepath, "r") do |file|
-					file.seek answer["position"]["line_start_byte"].to_i
-					line = file.gets
-					hashline = reconstruct(line, filetype)
-					objs << {:infos => infos, :data => hashline}
-				end 
+				begin
+					File.open(filepath, "r") do |file|
+						file.seek answer["position"]["line_start_byte"].to_i
+						line = file.gets
+						hashline = reconstruct(line, filetype)
+						objs << {:infos => infos, :data => hashline}
+					end 
+				rescue Errno::ENOENT
+					raise IndexedFileNotFound.new "There were some results in '#{filepath}' but the file has been deleted or moved from disk. Please remove it from BDF database."
+				end
+				
 			end
 			{:gen_infos => gen_infos, :objs => objs}
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, searching process aborted:\n#{e.message}"
-		rescue Errno::ENOENT
-			raise "It seems that indexed file '#{filepath}' has been deleted from disk, please remove it from BDF database before searching"
 		end
 			
 			

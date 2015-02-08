@@ -33,7 +33,7 @@ class BDFcli < Thor
 				"Welcome in the interactive setup for BiodataFinder!",
 				"Please insert URL where BDF can find ElasticSearch server: "
 			)
-			settings[:host] = STDIN.gets.chomp
+			settings[:es_address] = STDIN.gets.chomp
 			
 			puts "Insert at most number of results that BDF will return: "
 			settings[:max_results] = STDIN.gets.to_i
@@ -53,10 +53,10 @@ class BDFcli < Thor
 			#Batch mode
 			settings = batch_setting(options)
 			puts settings.to_s
-			raise "Wrong parameters! You must specify 'es_address', 'max_results', 'bdf_index' parameters." if (settings[:host].nil? || settings[:max_results].nil? || settings[:index].nil?)
+			raise "Wrong parameters! You must specify 'es_address', 'max_results', 'index' parameters." if (settings[:es_address].nil? || settings[:max_results].nil? || settings[:index].nil?)
 		end
 		
-		BiodataFinder::Client.new settings[:host], settings[:index], settings[:idx_exists]
+		BiodataFinder::Client.new settings[:es_address], settings[:index], settings[:idx_exists]
 		settings[:idx_exists] = true
 		
 		Dir.mkdir (File.dirname conf_file) unless Dir.exist? (File.dirname $conf_file) 
@@ -95,13 +95,13 @@ class BDFcli < Thor
     	                 
 		                 
     desc "set --FIELD_NAME=VALUE", "Set the config fields"
-	method_option :bdf_index, :aliases => "-b", :desc => "Set the default index name."
+	method_option :index, :aliases => "-i", :desc => "Set the default index name."
 	method_option :es_address, :aliases => "-a", :desc => "Set where BDF can find ElasticSearch."
 	method_option :max_results, :aliases => "-m", :desc => "Set the max number of results displayed."
 	method_option :idx_exists, :type => :boolean, :aliases => "-e", :desc => "If it appears, index specificated already exists."
     def set
 		raise "No conf file fouds in '#{$conf_file}'. Please run 'bdf-cli init_setup' first." unless File.exist? $conf_file
-		raise "'idx_exists' take no sense unless in pair with 'bdf_index' option" if options[:idx_exists] and !options[:bdf_index] 
+		 
 		settings = Hash.new
 		File.open($conf_file,"r") do |file|
 			contents = file.inject("") {|text, line| text+=line}
@@ -111,7 +111,7 @@ class BDFcli < Thor
 		end
 		settings.update batch_setting(options)
 		puts settings.to_s
-		BiodataFinder::Client.new settings[:es_address], settings[:bdf_index], settings[:idx_exists]
+		BiodataFinder::Client.new settings[:es_address], settings[:index], options[:idx_exists]
 		settings[:idx_exists] = true
 		File.open($conf_file,"w") do |file|
 			file.puts (JSON.pretty_generate settings)
@@ -182,7 +182,7 @@ class BDFcli < Thor
 	end
 	
 	
-	desc "delete", "Delete indexes or files"
+	desc "delete -f || -i", "Delete indexes or files"
 	method_option :index, :aliases => "-i", :desc => "Delete index with name OPTION_ARG"
 	method_option :file, :aliases => "-f", :desc => "Delete all documents of file with name OPTION_ARG"
 	def delete
@@ -227,7 +227,7 @@ class BDFcli < Thor
 			contents = file.inject("") {|text, line| text+=line}
 			contents.gsub! "\n", " "
 			chash = JSON.parse contents
-			$bdf_client = BiodataFinder::Client.new chash['host'], chash['index'], true
+			$bdf_client = BiodataFinder::Client.new chash['es_address'], chash['index'], true
 			$max_results = chash['max_results']
 		end	
 	end
@@ -236,12 +236,12 @@ class BDFcli < Thor
 		settings = Hash.new
 		options.each_pair do |field,value|  
 			case field
-			when 'bdf_index'
+			when 'index'
 				settings[:index] = value  
 				puts "Default index = #{settings[:index]}"
 			when 'es_address'
-				settings[:host] = value
-				puts "Host = #{settings[:host]}"
+				settings[:es_address] = value
+				puts "ES address = #{settings[:es_address]}"
 			when 'max_results'
 				raise "'#{value}' isn't a correct set for max_results. Puts an integer >= 1." if value.to_i == 0 
 				settings[:max_results] = value.to_i 
