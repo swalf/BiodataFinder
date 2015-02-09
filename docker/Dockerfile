@@ -1,6 +1,6 @@
-# BioDataFinder:0.1.16.pre
+# BioDataFinder:0.3.9.pre
 #
-# VERSION               0.0.2
+# VERSION               0.98
 
 FROM ruby:2.1.5
 MAINTAINER Alessandro Bonfanti <a.bonfanti9@campus.unimib.it>
@@ -18,7 +18,7 @@ RUN apt-get install -y vim
 
 ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
 
-RUN echo '2015-02-09 15:18' && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/ 
+RUN echo '2015-02-09 17:10' && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
 RUN mkdir /root/.biodatafinder/ 
 
@@ -29,7 +29,7 @@ RUN cd /temp/bdf/ &&\
 RUN cd /temp/bdf/ &&\
 	ls    
     
-RUN gem install /temp/bdf/biodatafinder-0.3.8.pre.gem
+RUN gem install /temp/bdf/biodatafinder-0.3.9.pre.gem
     
    
 RUN cd /opt &&\

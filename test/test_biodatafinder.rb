@@ -4,33 +4,24 @@
 #$:.unshift File.join(File.dirname(__FILE__),'..','lib')
 
 require 'minitest/autorun'
-require "../sources/indexer.rb"
-require "../sources/finder.rb"
-require 'elasticsearch'
+require_relative '../lib/biodatafinder.rb'
 
-class Test_indexer < Minitest::Test
+
+class Test_core < Minitest::Test
     
-#  def test_index
-#    test_client = Elasticsearch::Client.new log: true
-#    test_indexer = Indexer.new test_client "test_index"
-#    sample_files = (Dir.entries "./samplefiles/").select {|el| File(el).file?}
-#    sample_files.each {|filepath| test_indexer.index filepath}
-#    test_client.search index: "test_index", q: query_text   
-#    # assert_equal("foo", bar)
-#  end
+
   def setup
-        
-    @test_client = Elasticsearch::Client.new log: true
-    @test_finder = (Finder.new @test_client, "a3")
-    @res = @test_finder.query "TSS8"
+    p 'Setup:'
   end
   
   def test_cliquery
-    
-    assert_equal(Array, @res.class, "il risultato non è un array")
-    
-    @res.each_with_index { |el, i|  assert_equal(String,el.class, "il #{i+1} elemento di res non è una stringa")}
-    
+	test_client = Biodatafinder::Client.new 'http://localhost:9220', 'test-idx', false
+	test_client.parse 'sample_files/example.gtf'
+	
+#     assert_equal(Array, @res.class, "il risultato non è un array")
+#     
+#     @res.each_with_index { |el, i|  assert_equal(String,el.class, "il #{i+1} elemento di res non è una stringa")}
+#     
         
     
     

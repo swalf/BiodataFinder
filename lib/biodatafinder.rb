@@ -44,7 +44,7 @@ module Biodatafinder
 	
 	class Client 
 		
-		@@Version = "0.3.8.pre"
+		@@Version = "0.3.9.pre"
 		@@DBVersion = 1.1 
 		
 		def self.version
@@ -226,7 +226,7 @@ module Biodatafinder
 		end
 		
 		def search (input_text, options = {})
-			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25}.update options
+			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25, rawdata: false}.update options
 			
 			# Preprocessing query
 			text_tokens = input_text.split('-')
@@ -332,8 +332,12 @@ module Biodatafinder
 					File.open(filepath, "r") do |file|
 						file.seek answer["position"]["line_start_byte"].to_i
 						line = file.gets
-						hashline = reconstruct(line, filetype)
-						objs << {:infos => infos, :data => hashline}
+						if options[:rawdata] == true
+							objs << {:infos => infos, :data => {:rawdata => line}}
+						else
+							hashline = reconstruct(line, filetype)
+							objs << {:infos => infos, :data => hashline}
+						end
 					end 
 				rescue Errno::ENOENT
 					raise IndexedFileNotFound.new "There were some results in '#{filepath}' but the file has been deleted or moved from disk. Please remove it from BDF database."

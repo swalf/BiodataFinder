@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.3.8.pre'
+  s.version     = '0.3.9.pre'
   s.date        = '2015-02-09'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]

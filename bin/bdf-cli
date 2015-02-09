@@ -124,17 +124,18 @@ class BDFcli < Thor
 	method_option :files, :type => :array, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
 	method_option :directories, :type => :array, :aliases => "-d", :desc => "Specifify in which directories search will be implemented, elsewere alls will be used."
 	method_option :filetype, :aliases => "-t", :desc => "Specify if you want results only from a specific filetype, elsewere alls will be used."
-	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'inline', json', 'pretty_json'."
+	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'inline', json', 'pretty_json', 'rawdata'."
     def search (query_text)
 		load_setup
         
         of = options[:output_format]
         of = 'inline' if of.nil?
-		raise "Wrong output format!" unless ["json","pretty_json","inline"].include? of
+		raise "Wrong output format!" unless ["json","pretty_json","inline","rawdata"].include? of
 		opt_hash = {max_results: $max_results}
 		opt_hash.update files_list: options[:files] unless options[:files].nil?
 		opt_hash.update dir_list: options[:directories] unless (options[:directories].nil? || !options[:files].nil?)
 		opt_hash.update filetype: options[:filetype] unless options[:filetype].nil?
+		opt_hash.update rawdata: true if of == 'rawdata'
 		results = $bdf_client.search query_text, opt_hash
 		
 		case of
@@ -154,6 +155,10 @@ class BDFcli < Thor
 					"-------"
 				)
 				puts (JSON.pretty_generate obj[:data])
+			end
+		when 'rawdata'
+			results[:objs].each do |obj|
+				puts obj[:data][:rawdata]
 			end
 		end
 		
