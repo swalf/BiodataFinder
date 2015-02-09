@@ -1,5 +1,5 @@
 #
-# This is BiodataFinder Core Module
+# This is Biodatafinder Core Module
 #
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
@@ -9,7 +9,7 @@ require 'json'
 require 'elasticsearch'
 require 'progressbar'
 
-module BiodataFinder
+module Biodatafinder
 	
 	# Error classes
 

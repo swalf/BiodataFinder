@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# This is a Sinatra web interface for BiodataFinder
+# This is a Sinatra web interface for Biodatafinder
 #
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
@@ -48,7 +48,7 @@ while !ARGV[i].nil?
 	i += 1
 end
 raise "I can't load all needed settings from config file or commandline." unless $si_port && $es_address && $bdf_index && $max_results 
-BiodataFinder::Client.new $es_address, $bdf_index, true
+Biodatafinder::Client.new $es_address, $bdf_index, true
 			
 
 #Error classes:
@@ -89,7 +89,7 @@ class BdfSI < Sinatra::Base
 			
 			@title = "Results for '#{@params[:src]}' in '#{$bdf_index}'"
 			
-			bdf_client = (BiodataFinder::Client.new $es_address, $bdf_index, true)
+			bdf_client = (Biodatafinder::Client.new $es_address, $bdf_index, true)
 			$max_results = params[:nres].to_i unless params[:nres].nil?
 			opt_hash = {max_results: $max_results}
 			case params[:filter] 
@@ -210,7 +210,7 @@ class BdfSI < Sinatra::Base
 	
 	get '/msettings' do
 		@title = "BDF - Advenced search"
-		bdf_client = (BiodataFinder::Client.new $es_address, $bdf_index, true)
+		bdf_client = (Biodatafinder::Client.new $es_address, $bdf_index, true)
 		@files = bdf_client.files
 		@filetypes = bdf_client.supported_types
 		@directories = @files.inject [] {|acc,file| acc << (File.dirname file)}

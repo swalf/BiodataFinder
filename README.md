@@ -1,5 +1,5 @@
 ===========================
-BiodataFinder
+Biodatafinder
 ===========================
 
 A gem for index biodata files and search through them
@@ -11,7 +11,7 @@ make some full text search over it.
 Overview
 ----------------
 
-BiodataFinder have currently two interfaces: bdf-cli and bdf-si, the command line interface and the web one. 
+Biodatafinder have currently two interfaces: bdf-cli and bdf-si, the command line interface and the web one. 
 At now it support gtf and tracking files.
 
 Softare requirement
@@ -114,4 +114,4 @@ Delete a full bdf-cli index
 
 
   
-**Warning:** Keep in mind that this project is in a very alpha state and it's not ready for production systems.
+**Warning:** Keep in mind that this project is in alpha state. Carefully deem its results.

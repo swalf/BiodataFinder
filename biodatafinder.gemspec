@@ -12,12 +12,12 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "sinatra-contrib", ["~> 1.4"]
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
-  # BiodataFinder
+  # Biodatafinder
   
   This gem allow you to index some biodata files (currently only gtf and tracking files) in an ElasticSearch index and then 
   make some full text search over it. 
   
-  BiodataFinder currently has two interfaces, a command-line interface (bdf-cli) and a web Sinatra interface (bdf-si). 
+  Biodatafinder currently has two interfaces, a command-line interface (bdf-cli) and a web Sinatra interface (bdf-si). 
   Both interfaces need to work a running instance of ElasticSearch running on port 9200.
   
   Currently BDF support only GTF and Tracking filetypes.
@@ -51,6 +51,6 @@ Gem::Specification.new do |s|
   s.executables << 'bdf-cli'
   s.executables << 'bdf-si'
   s.homepage    =
-    'https://github.com/swalf/BiodataFinder'
+    'https://github.com/swalf/Biodatafinder'
   s.license       = 'GPLv3'
 end

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# This is a command line interface for BiodataFinder
+# This is a command line interface for Biodatafinder
 #
 # Author::    Alessandro Bonfanti  (mailto:swalf@users.noreply.github.com)
 # Copyright:: Copyright (c) 2014, Alessandro Bonfanti
@@ -30,7 +30,7 @@ class BDFcli < Thor
 		if options[:interactive]
 			#Interactive mode
 			puts(
-				"Welcome in the interactive setup for BiodataFinder!",
+				"Welcome in the interactive setup for Biodatafinder!",
 				"Please insert URL where BDF can find ElasticSearch server: "
 			)
 			settings[:es_address] = STDIN.gets.chomp
@@ -56,7 +56,7 @@ class BDFcli < Thor
 			raise "Wrong parameters! You must specify 'es_address', 'max_results', 'index' parameters." if (settings[:es_address].nil? || settings[:max_results].nil? || settings[:index].nil?)
 		end
 		
-		BiodataFinder::Client.new settings[:es_address], settings[:index], settings[:idx_exists]
+		Biodatafinder::Client.new settings[:es_address], settings[:index], settings[:idx_exists]
 		settings[:idx_exists] = true
 		
 		Dir.mkdir (File.dirname conf_file) unless Dir.exist? (File.dirname $conf_file) 
@@ -65,7 +65,7 @@ class BDFcli < Thor
 		end
 		puts "Initial settings complete!"
 		#rescue here...
-	rescue BiodataFinder::BDFIndexNotFound => e
+	rescue Biodatafinder::BDFIndexNotFound => e
 		puts e.message
 	rescue RuntimeError => e
 		puts e.message
@@ -111,7 +111,7 @@ class BDFcli < Thor
 		end
 		settings.update batch_setting(options)
 		puts settings.to_s
-		BiodataFinder::Client.new settings[:es_address], settings[:index], options[:idx_exists]
+		Biodatafinder::Client.new settings[:es_address], settings[:index], options[:idx_exists]
 		settings[:idx_exists] = true
 		File.open($conf_file,"w") do |file|
 			file.puts (JSON.pretty_generate settings)
@@ -194,7 +194,7 @@ class BDFcli < Thor
 			puts "OK, '#{options[:index]}' deleted"
 		elsif options[:file].is_a? String
 			$bdf_client.delete options[:file]
-			puts "OK, '#{options[:file]}' deleted from BiodataFinder database"
+			puts "OK, '#{options[:file]}' deleted from Biodatafinder database"
 		end
 	
 	rescue RuntimeError => e
@@ -206,11 +206,11 @@ class BDFcli < Thor
 	method_option :version, :type => :boolean, :aliases => "-v", :desc => "Show version number"
 	def puts_infos
 		if options[:version]
-			puts "BiodataFinder #{BiodataFinder::Client.version}."
+			puts "Biodatafinder #{Biodatafinder::Client.version}."
 		else 
 			puts(
-				"This is bdf-cli, a command line interface for BiodataFinder",
-				"BiodataFinder #{BiodataFinder::Client.version},  Copyright (C) 2014  Alessandro Bonfanti",
+				"This is bdf-cli, a command line interface for Biodatafinder",
+				"Biodatafinder #{Biodatafinder::Client.version},  Copyright (C) 2014  Alessandro Bonfanti",
 				"This program comes with ABSOLUTELY NO WARRANTY;",
 				"This is free software, and you are welcome to redistribute it under certain conditions.",
 				"See http://www.gnu.org/licenses/gpl.html GNU_GPLv3 licence for details."			
@@ -228,7 +228,7 @@ class BDFcli < Thor
 			contents = file.inject("") {|text, line| text+=line}
 			contents.gsub! "\n", " "
 			chash = JSON.parse contents
-			$bdf_client = BiodataFinder::Client.new chash['es_address'], chash['index'], true
+			$bdf_client = Biodatafinder::Client.new chash['es_address'], chash['index'], true
 			$max_results = chash['max_results']
 		end	
 	end
