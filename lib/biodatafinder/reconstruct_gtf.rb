@@ -1,5 +1,5 @@
 def reconstruct_gtf (line, type)
-	seqname, source, feature, c_start, c_end, score, strand, frame, attr_string  = line.split "\t"
+	seqname, source, feature, c_start, c_end, score, strand, frame, attr_string  = line.chomp.split "\t"
 	attrs_array = attr_string.split ";"
 	attributes = Hash.new
 	attrs_array.each do |attr_pair|

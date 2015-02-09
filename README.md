@@ -91,7 +91,7 @@ _________________________
 
 Set bdf index: 
 
-``bdf-cli set --bdf_index=NEW_INDEX [--idx_exists]``
+``bdf-cli set --index=NEW_INDEX [--idx_exists]``
 
 Watch list of file indexed by Biodatafinder:
 

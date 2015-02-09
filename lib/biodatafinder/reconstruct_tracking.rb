@@ -1,5 +1,5 @@
 def reconstruct_tracking (line, type)
-	ldata = line.split "\t"
+	ldata = line.chomp.split "\t"
 	document = {
 		"tracking_id" => tracking_id = ldata[0],
 		"class_code" => ldata[1], 

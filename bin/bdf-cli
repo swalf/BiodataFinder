@@ -124,38 +124,39 @@ class BDFcli < Thor
 	method_option :files, :type => :array, :aliases => "-f", :desc => "Specifify in which files search will be implemented, elsewere alls will be used."
 	method_option :directories, :type => :array, :aliases => "-d", :desc => "Specifify in which directories search will be implemented, elsewere alls will be used."
 	method_option :filetype, :aliases => "-t", :desc => "Specify if you want results only from a specific filetype, elsewere alls will be used."
-	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'json', 'object', 'pretty_json'."
+	method_option :output_format, :aliases => "-o", :desc => "Specify the format of output, allovable values are 'inline', json', 'pretty_json'."
     def search (query_text)
 		load_setup
         
         of = options[:output_format]
-        of = 'pretty_json' if of.nil?
-		raise "Wrong output format!" unless ["json","pretty_json","object"].include? of
+        of = 'inline' if of.nil?
+		raise "Wrong output format!" unless ["json","pretty_json","inline"].include? of
 		opt_hash = {max_results: $max_results}
 		opt_hash.update files_list: options[:files] unless options[:files].nil?
 		opt_hash.update dir_list: options[:directories] unless (options[:directories].nil? || !options[:files].nil?)
 		opt_hash.update filetype: options[:filetype] unless options[:filetype].nil?
 		results = $bdf_client.search query_text, opt_hash
 		
-        puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):"
-        results[:objs].each_with_index do |obj,i|
-            puts(
-				"=======",
-				"Result #{i+1}",
-				"score: #{obj[:infos][:scores]}",
-				"type: #{obj[:infos][:filetype]}",
-				"file: #{obj[:infos][:filepath]}",
-				"-------"
-			)
-			case of
-			when 'pretty_json'
+		case of
+		when 'pretty_json'
+			puts (JSON.pretty_generate results)
+		when 'json'
+			puts (JSON.generate results)
+		when 'inline'
+			puts "#{results[:gen_infos][:nres]} result(s) found (max score #{results[:gen_infos][:max_scores]}):" if of == 'inline'
+			results[:objs].each_with_index do |obj,i|
+				puts(
+					"=======",
+					"Result #{i+1}",
+					"score: #{obj[:infos][:scores]}",
+					"type: #{obj[:infos][:filetype]}",
+					"file: #{obj[:infos][:filepath]}",
+					"-------"
+				)
 				puts (JSON.pretty_generate obj[:data])
-			when 'json'
-				puts (JSON.generate obj[:data])
-			when 'object'
-				puts obj[:data].to_s
 			end
-        end
+		end
+		
 	rescue RuntimeError => e
 		puts e.message
 	end

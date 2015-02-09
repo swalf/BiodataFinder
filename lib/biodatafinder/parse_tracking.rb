@@ -21,7 +21,7 @@ def parse_tracking (filepath)
 		docpool = []
 		file.each_with_index do |line,i|
 			
-			ldata = line.split
+			ldata = line.chomp.split
 			tracking_id = ldata[0]
 			nearest_ref_id = ldata[3]
 			gene_id = ldata[4]

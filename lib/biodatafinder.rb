@@ -44,7 +44,7 @@ module BiodataFinder
 	
 	class Client 
 		
-		@@Version = "0.3.7.pre"
+		@@Version = "0.3.8.pre"
 		@@DBVersion = 1.1 
 		
 		def self.version
@@ -122,6 +122,8 @@ module BiodataFinder
 			
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+		rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable
+			raise NoESInstance.new "It seems that the instance of ElasticSearch running on '#{@host}' is unavailable. Try to wait few seconds and retry."
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, BDFClient init process aborted:\n#{e.message}"
 		end
@@ -149,6 +151,8 @@ module BiodataFinder
 			end
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+		rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable
+			raise NoESInstance.new "It seems that the instance of ElasticSearch running on '#{@host}' is unavailable. Try to wait few seconds and retry."
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, parsing process aborted:\n#{e.message}"
 		ensure 
@@ -195,6 +199,8 @@ module BiodataFinder
 			@files.delete filepath
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+		rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable
+			raise NoESInstance.new "It seems that the instance of ElasticSearch running on '#{@host}' is unavailable. Try to wait few seconds and retry."
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, parsing process aborted:\n#{e.message}"
 		ensure
@@ -213,12 +219,20 @@ module BiodataFinder
 			end
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+		rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable
+			raise NoESInstance.new "It seems that the instance of ElasticSearch running on '#{@host}' is unavailable. Try to wait few seconds and retry."
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, remove process aborted:\n#{e.message}"
 		end
 		
-		def search (query_text, options = {})
+		def search (input_text, options = {})
 			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25}.update options
+			
+			# Preprocessing query
+			text_tokens = input_text.split('-')
+			text_tokens.each {|tt| text_tokens.delete tt if tt =~ /^ +$/} # Delete blanc tokens 
+			query_text = text_tokens.join(' AND ')
+			
 			
 			if options[:files_list] != :all
 				raise WrongArgument.new ":filelist must be :all or an array filled by some indexed files" unless options[:files_list].is_a? Array 
@@ -297,7 +311,7 @@ module BiodataFinder
 				body: {
 			           size: options[:max_results],
 			           query: {
-			                   query_string: {query: query_text}
+			                   query_string: {query: (query_text)}
 			                  },
 			           filter: filter
 			          }
@@ -329,6 +343,8 @@ module BiodataFinder
 			{:gen_infos => gen_infos, :objs => objs}
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
+		rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable
+			raise NoESInstance.new "It seems that the instance of ElasticSearch running on '#{@host}' is unavailable. Try to wait few seconds and retry."
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, searching process aborted:\n#{e.message}"
 		end
