@@ -57,7 +57,7 @@ If you want index more than a file at time, you must use -b flag with the list o
 Searching
 ___________________
 
-Via bdf-cli. 
+**Via bdf-cli**. 
 Search 'tss7': 
 
 ``bdf-cli search tss7`` 
@@ -79,12 +79,19 @@ If you want search only in a list of files specificated use flag -f follewed by 
 
 ``bdf-cli search ENST00000476201 -f "data/foo/file1.gtf" "data/foo/file2.gtf" "data/foo/file3.gtf"``
 
-Via bdf-si.
-  - Start it vith: 
+**Via bdf-si.**
+In order to use bdf-si you have to write a little JSON file like this:
 
-    ``bdf-si port=PORT_NUMBER_WHERE_SERVICE_WILL_STAND_UP es_address=ELASTICSEARCH_ADDRESS bdf_index=BIODATAFINDER_INDEX_TO_BE_USED``
+    {
+       "max_results": MAX_NUMBER_OF_RESULTS,
+       "bdf_index": "INDEX_NAME",
+       "es_address": "ES_ADDRESS",
+       "si_port": PORT_WHERE_WEB_INTERFACE_WILL_STARTS
+    }
+    
+And save it to ``~/.biodatafinder/bdf-si.conf``
 
-  - Go to the search page, fill the requested fields and push "search" ::
+Go to the search page, fill the requested fields and push "search" ::
 
 Management
 _________________________
