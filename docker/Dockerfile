@@ -43,6 +43,10 @@ RUN mkdir -p /usr/share/elasticsearch/db &&\
          
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+RUN mkdir -p /root/.biodatafinder
+COPY bdf-cli.conf /root/.biodatafinder/bdf-cli.conf
+COPY bdf-si.conf /root/.biodatafinder/bdf-si.conf
+
 EXPOSE 1234 9200 9300
 
 CMD ["/usr/bin/supervisord"]
