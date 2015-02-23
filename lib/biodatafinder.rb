@@ -72,6 +72,36 @@ module Biodatafinder
 				raise IndexAlreadyOccupied.new "#{bdf_index} already exists!" if (@ESClient.indices.exists index: bdf_index)
 				# New index initialization
 				@ESClient.indices.create index: bdf_index
+				# sleep 2
+        # @ESClient.indices.close index: bdf_index
+        # sleep 2
+				# # Setting Index for autocomplete
+				# @ESClient.indices.put_settings index: bdf_index, body:    {
+		  #     index: {
+		  #       analysis: {
+		  #         filter: {
+		  #           autocomplete_filter: { 
+		  #             type: 'edge_ngram',
+		  #             min_gram: 1,
+		  #             max_gram: 20
+		  #           }
+		  #         },
+		  #         analyzer: {
+		  #           autocomplete: {
+		  #             type: 'custom',
+		  #             tokenizer: 'standard',
+		  #             filter: [
+		  #               'lowercase',
+		  #               'autocomplete_filter'
+		  #             ]
+		  #           }
+		  #         }
+		  #       }
+		  #     }
+		  #   }
+		  #   sleep 2
+        # @ESClient.indices.open index: bdf_index
+        # sleep 2
 				# Mappings for fields that have to be threated literally
 				@ESClient.indices.put_mapping index: bdf_index, type: '_default_', body: {
 					_default_: {
@@ -229,9 +259,16 @@ module Biodatafinder
 			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 25, rawdata: false}.update options
 			
 			# Preprocessing query
-			text_tokens = input_text.split('-')
-			text_tokens.each {|tt| text_tokens.delete tt if tt =~ /^ +$/} # Delete blanc tokens 
-			query_text = text_tokens.join(' AND ')
+
+			query_text = input_text.split.map do |text_token|
+				if text_token =~/-/
+				  "(" + text_token.split('-').join(' AND ') + ")"
+				else
+					text_token
+				end
+				# text_tokens.each {|tt| text_tokens.delete tt if tt =~ /^ +$/} # Delete blanc tokens 
+				# query_text = text_tokens.join(' AND ')
+			end.join(' OR ')
 			
 			
 			if options[:files_list] != :all
@@ -322,6 +359,7 @@ module Biodatafinder
 			gen_infos = {:nres => answers.length, :max_scores => scores.max}
 			objs = []
 			answers.each_with_index do |answer,i|
+				#data should be clustered by filepath to avoid reopening of the file multiple times.
 				infos = {:scores => scores[i]}
 				filepath = answer["position"]["dir"] + '/' + answer["position"]["name"] + answer["position"]["extension"]
 				
@@ -330,12 +368,15 @@ module Biodatafinder
 				infos[:filetype] = filetype
 				begin
 					File.open(filepath, "r") do |file|
+						header = file.readline #header can be read in a smarter way (extracted from the file ahead of processing)
+						file.seek(0)
 						file.seek answer["position"]["line_start_byte"].to_i
+						infos[:header] = header.strip.split
 						line = file.gets
 						if options[:rawdata] == true
 							objs << {:infos => infos, :data => {:rawdata => line}}
 						else
-							hashline = reconstruct(line, filetype)
+							hashline = reconstruct(line, filetype, header)
 							objs << {:infos => infos, :data => hashline}
 						end
 					end 
@@ -398,10 +439,10 @@ module Biodatafinder
 			@pbar.inc
 		end
 		
-		def reconstruct (line, type)
+		def reconstruct (line, type, header)
 			mn = "reconstruct_" + type.downcase
 			if self.respond_to? mn, true # 'true' was added for check private methods
-				self.send mn.to_sym, line, type # Call the appropriate code for recostructoring the json from line data
+				self.send mn.to_sym, line, type, header # Call the appropriate code for recostructoring the json from line data
 			else
 				raise BDFError.new "Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
 			end

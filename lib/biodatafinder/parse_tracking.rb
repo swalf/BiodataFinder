@@ -2,21 +2,21 @@ def parse_tracking (filepath)
 	File.open(filepath, "r") do |file|
 		
 		header = file.readline
-		raise "tracking file format error" if header.split != [
-			"tracking_id", 
-			"class_code", 
-			"nearest_ref_id",
-			"gene_id",
-			"gene_short_name",
-			"tss_id", 
-			"locus",
-			"length", 
-			"coverage",
-			"FPKM",
-			"FPKM_conf_lo",
-			"FPKM_conf_hi",
-			"FPKM_status"
-		] 
+		# raise "tracking file format error" if header.split != [
+		# 	"tracking_id", 
+		# 	"class_code", 
+		# 	"nearest_ref_id",
+		# 	"gene_id",
+		# 	"gene_short_name",
+		# 	"tss_id", 
+		# 	"locus",
+		# 	"length", 
+		# 	"coverage",
+		# 	"FPKM",
+		# 	"FPKM_conf_lo",
+		# 	"FPKM_conf_hi",
+		# 	"FPKM_status"
+		# ] 
 		lbs = file.pos # Start line byte
 		docpool = []
 		file.each_with_index do |line,i|
