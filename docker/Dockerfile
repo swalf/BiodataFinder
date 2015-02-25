@@ -16,7 +16,7 @@ RUN apt-get install -y supervisor
 
 RUN apt-get install -y vim
 
-ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
+COPY elasticsearch-1.4.2.tar.gz /opt/
 
 RUN echo '2015-02-09 17:10' && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/ 
 
@@ -48,6 +48,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /root/.biodatafinder
 COPY bdf-cli.conf /root/.biodatafinder/bdf-cli.conf
 COPY bdf-si.conf /root/.biodatafinder/bdf-si.conf
+
+RUN cd /opt/elasticsearch &&\
+    bin/plugin -i elasticsearch/marvel/latest
 
 EXPOSE 1234 9200 9300
 
