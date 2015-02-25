@@ -34,7 +34,9 @@ RUN gem install /temp/bdf/biodatafinder-0.3.9.pre.gem
    
 RUN cd /opt &&\
     tar xzvf /opt/elasticsearch-1.4.2.tar.gz &&\
-    mv /opt/elasticsearch-1.4.2 /opt/elasticsearch
+    mv /opt/elasticsearch-1.4.2 /opt/elasticsearch &&\
+    cd /opt/elasticsearch &&\
+    bin/plugin -i elasticsearch/marvel/latest
 
 COPY elasticsearch.yml /opt/elasticsearch/config/
 
