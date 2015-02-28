@@ -47,9 +47,9 @@ while !ARGV[i].nil?
 	end
 	i += 1
 end
-raise "I can't load all needed settings from config file or commandline." unless $si_port && $es_address && $bdf_index && $max_results 
+raise "I can't load all needed settings from config file or commandline." unless $si_port && $es_address && $bdf_index && $max_results
 Biodatafinder::Client.new $es_address, $bdf_index, true
-			
+
 
 #Error classes:
 class BdfSIError < RuntimeError
@@ -68,31 +68,31 @@ class BdfSI < Sinatra::Base
 		enable :sessions
 		set :bind, '0.0.0.0'
 	end
-	
+
 	get ('/styles.css') { scss :styles }
-	
+
 	get '/' do
 	    redirect to("/search")
 	end
-	
+
 	get '/search' do
 	    @title = "BDF search"
 	    @search
 	    erb :search
 	end
-	
+
 	get '/search/q' do
 		begin
-			raise QueryError.new("Malformed query!") if @params[:src].nil?	
-			
+			raise QueryError.new("Malformed query!") if @params[:src].nil?
+
 			@params[:out] = 'table' if @params[:out].nil?
-			
+
 			@title = "Results for '#{@params[:src]}' in '#{$bdf_index}'"
-			
+
 			bdf_client = (Biodatafinder::Client.new $es_address, $bdf_index, true)
 			$max_results = params[:nres].to_i unless params[:nres].nil?
 			opt_hash = {max_results: $max_results}
-			case params[:filter] 
+			case params[:filter]
 			when 'filelist'
 				opt_hash.update files_list: @params[:files]
 				p '++++++++++++++++++++++filelist'
@@ -102,10 +102,10 @@ class BdfSI < Sinatra::Base
 				p '++++++++++++++++++++++dirlist'
 				p @params[:directories].to_s
 			end
-			opt_hash.update filetype: @params[:filetype] unless @params[:filetype] == 'ALL' 
+			opt_hash.update filetype: @params[:filetype] unless @params[:filetype] == 'ALL'
 			results = (bdf_client.search @params[:src], opt_hash)
-			
-			
+
+
 			case @params[:out]
 			when 'table'
 				if results[:gen_infos][:nres] != 0
@@ -159,18 +159,18 @@ class BdfSI < Sinatra::Base
 			else
 				raise "An unknown output (#{@params[:out]}) has been requested."
 			end
-			
+
 		rescue Faraday::ConnectionFailed => e
-			unless ["json", "pretty_json"].include? @params[:out] 
+			unless ["json", "pretty_json"].include? @params[:out]
 				@es_error = "It seems that there is no running instance of ElasticSearch, please start it before use bdf-si."
 				erb :es_error
 			else
 				results = { "status" => "error", "gen_infos" => {"error_type" => "No ElasticSearch instance found" }}
 				content_type :json
-				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)		
+				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
 		rescue Elasticsearch::Transport::Transport::Errors::NotFound => e
-			unless ["json", "pretty_json"].include? @params[:out] 
+			unless ["json", "pretty_json"].include? @params[:out]
 				@es_error = "'#{$bdf_index}' is not a valid index!"
 				erb :es_error
 			else
@@ -178,9 +178,9 @@ class BdfSI < Sinatra::Base
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
-			
+
 		rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
-			unless ["json", "pretty_json"].include? @params[:out] 
+			unless ["json", "pretty_json"].include? @params[:out]
 				@es_error = "'#{@params[:src]}' this is not a valid search (do not fill it only by delimiters)! <#{e.message}>"
 				erb :es_error
 			else
@@ -188,9 +188,9 @@ class BdfSI < Sinatra::Base
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
-			
+
 		rescue Elasticsearch::Transport::Transport::Error => e
-			unless ["json", "pretty_json"].include? @params[:out] 
+			unless ["json", "pretty_json"].include? @params[:out]
 				@es_error = "ElasticSearch error occurred: #{e.message}"
 				erb :es_error
 			else
@@ -198,16 +198,16 @@ class BdfSI < Sinatra::Base
 				content_type :json
 				(@params[:out] == 'pretty_json') ? (JSON.pretty_generate results) : (JSON.generate results)
 			end
-			
+
 		rescue QueryError => e
 			@es_error = "A problem with your query has occurred: #{e.message}"
-			
+
 		rescue RuntimeError => e
 			@es_error = e.message
 			erb :es_error
-		end	
+		end
 	end
-	
+
 	get '/msettings' do
 		@title = "BDF - Advenced search"
 		bdf_client = (Biodatafinder::Client.new $es_address, $bdf_index, true)
@@ -217,20 +217,21 @@ class BdfSI < Sinatra::Base
 		@directories.uniq!
 		erb :msettings
 	end
-	
+
 	get '/about' do
 	    erb :about
 	end
-	
+
+	get '/files' do
+		content_type :json
+		bdf_client = (Biodatafinder::Client.new $es_address, $bdf_index, true)
+		bdf_client.files.to_json
+	end
+
 	not_found do
 	    erb :not_found
 	end
-	
+
 	run!
 
 end #class
-
-
-
-
-
