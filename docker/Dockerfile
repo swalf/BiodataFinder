@@ -30,7 +30,7 @@ COPY elasticsearch-1.4.2.tar.gz /opt/
 #	ls
 
 COPY biodatafinder-0.4.0.pre.gem /tmp/
-RUN gem install /temp/biodatafinder-0.3.9.pre.gem
+RUN gem install /temp/biodatafinder-0.4.0.pre.gem
 
 
 RUN cd /opt &&\
