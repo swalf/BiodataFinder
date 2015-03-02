@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'biodatafinder'
-  s.version     = '0.3.9.pre'
-  s.date        = '2015-02-09'
+  s.version     = '0.4.0.pre'
+  s.date        = '2015-03-02'
   s.add_runtime_dependency "json", ["~> 1.8"]
   s.add_runtime_dependency "elasticsearch", ["~> 1.0"]
   s.add_runtime_dependency "thor", ["~> 0.18"]
@@ -13,19 +13,19 @@ Gem::Specification.new do |s|
   s.summary     = "Gem for indexing and searching biodata files"
   s.description = "
   # Biodatafinder
-  
-  This gem allow you to index some biodata files (currently only gtf and tracking files) in an ElasticSearch index and then 
-  make some full text search over it. 
-  
-  Biodatafinder currently has two interfaces, a command-line interface (bdf-cli) and a web Sinatra interface (bdf-si). 
+
+  This gem allow you to index some biodata files (currently only gtf and tracking files) in an ElasticSearch index and then
+  make some full text search over it.
+
+  Biodatafinder currently has two interfaces, a command-line interface (bdf-cli) and a web Sinatra interface (bdf-si).
   Both interfaces need to work a running instance of ElasticSearch running on port 9200.
-  
+
   Currently BDF support only GTF and Tracking filetypes.
-  
+
   *Warning* Keep in mind that this project is in a very alpha state and it's not ready for production systems.
   "
-  s.authors     = ["Alessandro Bonfanti"]
-  s.email       = 'swalf@users.noreply.github.com'
+  s.authors     = ["Alessandro Bonfanti", "Raoul Jean Pierre Bonnal"]
+  s.email       = ['swalf@users.noreply.github.com', 'ilpuccio.febo@gmail.com']
   s.files       = [
 	"lib/biodatafinder.rb",
 	"bin/bdf-cli",
@@ -36,14 +36,14 @@ Gem::Specification.new do |s|
 	"lib/biodatafinder/reconstruct_tracking.rb",
 	"app/public/favicon.ico",
 	"app/public/images/logo.png",
-	"app/views/nav.erb", 
+	"app/views/nav.erb",
 	"app/views/es_error.erb",
-	"app/views/not_found.erb", 
+	"app/views/not_found.erb",
 	"app/views/search.erb",
 	"app/views/search_inline.erb",
 	"app/views/layout.erb",
-	"app/views/styles.scss", 
-	"app/views/restable.erb", 
+	"app/views/styles.scss",
+	"app/views/restable.erb",
 	"app/views/about.erb",
 	"app/views/msettings.erb"
   ]
