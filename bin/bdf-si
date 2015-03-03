@@ -95,11 +95,11 @@ class BdfSI < Sinatra::Base
 			case params[:filter]
 			when 'filelist'
 				opt_hash.update files_list: @params[:files]
-				p '++++++++++++++++++++++filelist'
+				# p '++++++++++++++++++++++filelist'
 				p @params[:files].to_s
 			when 'dirlist'
 				opt_hash.update dir_list: @params[:directories]
-				p '++++++++++++++++++++++dirlist'
+				# p '++++++++++++++++++++++dirlist'
 				p @params[:directories].to_s
 			end
 			opt_hash.update filetype: @params[:filetype] unless @params[:filetype] == 'ALL'

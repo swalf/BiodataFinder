@@ -167,9 +167,11 @@ module Biodatafinder
 			@db_version = @ESClient.get_source(index: 'ingm', type: 'bdf_db', id: "ingm_db")["db_version"]
 		end
 
-		def parse (filepath, filetype = nil)
+		def parse (filepath, opts = {:filetype => nil})
+			filetype = opts[:filetype]
+			group    = opts[:group]
 
-			if files.include? File.expand_path filepath
+			if files.any?{|file| file["name"] == File.expand_path(filepath)}
 				raise BDFError.new "'#{filepath}' has been already parsed, if you would update it, please use 'reparse'"
 			end
 
@@ -182,13 +184,13 @@ module Biodatafinder
 			if self.respond_to? mn.to_sym, true # 'true' was added for check private methods
 				@pbar = ProgressBar.new("Parsing", (count_prog_step filepath))
 				@pbar.set 0
-				self.send mn, (File.expand_path filepath) # Calls the specific code for the indexing of current filetype
+				self.send mn, (File.expand_path(filepath)) # Calls the specific code for the indexing of current filetype
 				tabix_fname = function_name_by_filetype("tabix", filetype, filepath)
 				# @self.send tabix_fname, filepath  #if (self.respond_to?("#{tabix_fname}?".to_sym, true) && @self.send("#{tabix_fname}?"))
-				@files << File.expand_path(filepath)
+				@files << {name: File.expand_path(filepath), group: group}
 				@pbar.finish
 			else
-				raise "#{File.expand_path filepath}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
+				raise "#{File.expand_path(filepath)}: Sorry, parsing for this filetype (#{(filetype || File.extname(filepath)[1..-1])}) isn't yet implemented."
 			end
 		rescue Faraday::ConnectionFailed => e
 			raise NoESInstance.new "It seems that there is no running instance of ElasticSearch running on '#{@host}', plese start it before use BioDataFinder"
@@ -197,7 +199,7 @@ module Biodatafinder
 		rescue Elasticsearch::Transport::Transport::Errors => e
 			raise GenericESError.new "Something in ElasticSearch has failed, parsing process aborted:\n#{e.message}"
 		ensure
-			store_setup
+			store_setup(group: group)
 		end
 
 		def reparse (filepath, filetype = nil)
@@ -208,7 +210,7 @@ module Biodatafinder
 		end
 
 		def delete (filepath)
-			raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless files.include? filepath
+			raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless files.any?{|file| file["name"]==filepath}
 			f_dir = File.dirname filepath
 			f_ext = File.extname filepath
 			f_name = File.basename filepath, f_ext
@@ -344,7 +346,7 @@ module Biodatafinder
 		end #load_setup
 
 
-		def store_setup
+		def store_setup(opts={})
 			@ESClient.update  index: @index, type: 'bdf_db', id: "#{@index}_db", body: {
 				doc: {
 					files: @files,
@@ -399,7 +401,7 @@ module Biodatafinder
 				raise WrongArgument.new ":filelist must be :all or an array filled by some indexed files" unless options[:files_list].is_a? Array
 				part_filters = []
 				options[:files_list].each do |filepath|
-					raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.include? filepath
+					raise WrongArgument.new "'#{filepath}' isn't a file indexed by BioDataFinder!" unless @files.any?{|file| file[:name]==filepath }
 					f_ext = File.extname filepath
 				    f_name = File.basename filepath, f_ext
 				    f_dir = File.dirname filepath
@@ -432,7 +434,8 @@ module Biodatafinder
 				options[:dir_list].each do |dirpath|
 					input_tokens = dirpath.split '/'
 					@files.each do |file|
-						file_tokens = file.split '/'
+						filename = file["name"]
+						file_tokens = filename.split '/'
 						same_flag = true
 						input_tokens.length.times do |i|
 							if input_tokens[i] != file_tokens[i]
@@ -440,7 +443,7 @@ module Biodatafinder
 								break
 							end
 						end
-						dir_array << (File.dirname file) if same_flag
+						dir_array << (File.dirname filename) if same_flag
 					end
 				end
 				dir_array.uniq!
