@@ -269,25 +269,40 @@ module Biodatafinder
 		end
 
 		def search (input_text, options = {})
-			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 100, rawdata: false}.update options
+			options = {files_list: :all, dir_list: :all, filetype: :all, max_results: 1000, rawdata: false}.update options
+
+			es_body = {size: options[:max_results]}
 
 			# Preprocessing query
+			if filter_coordinates=is_query_a_coordinate?(input_text)
+				sequence,start,stop = filter_coordinates
+				filter_files = filer_on_files_or_directories(options)
+				es_body[:query] ={
+				   filtered: {
+				      filter: {
+				        and: {
+				          filters: filter_by_coordinates(sequence,start,stop) << filter_files
+						    }
+				      }
+				    }
+				  }
 
-			query_text = parse_query_input input_text
+			else
+			  query_text = parse_query_input input_text
+				es_body[:query] = {
+								  query_string: {query: (query_text)}
+								}
+				filter = filer_on_files_or_directories options
+				es_body[:filter] = filter
+		  end
 
-			filter = filer_on_files_or_directories options
 
 			es_results = @ESClient.search(
 				index: @index,
 				type: (options[:filetype] == :all ? nil : options[:filetype]),
-				body: {
-			           size: options[:max_results],
-			           query: {
-			                   query_string: {query: (query_text)}
-			                  },
-			           filter: filter
-			          }
-			)
+				body: es_body
+				)
+
 
 			answers = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_source"]}
 			scores = es_results["hits"]["hits"].inject([]) {|stor, el| stor << el["_score"]}
@@ -385,6 +400,32 @@ module Biodatafinder
 				raise BDFError.new "Sorry, I can't reconstruct data from this filetype (#{type}) because lack of specific code. Please check if code is installed."
 			end
 		end #reconstruct
+
+
+    # Return an array of data representing the coordinates
+		# or nil
+		def is_query_a_coordinate?(iquery)
+			if iquery.match(/(.*):(\d+)(\.{2,3}|-)(\d+)/)
+				[$1,$2.to_i,$4.to_i]
+			end
+		end
+
+		def filter_by_coordinates(sequence, start, stop)
+		# GET /ingm/_search
+			 [
+			            {
+			              range: {
+			                         start: { gte: start },
+			                          stop: { lte: stop}
+			                }
+			            },
+			            {
+			              term: {
+			                sequence: sequence
+			              }
+			            }
+			          ]
+    end
 
 	  def parse_query_input(iquery)
 	  	iquery.split.map do |text_token|
