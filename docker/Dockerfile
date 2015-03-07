@@ -18,9 +18,9 @@ RUN apt-get install -y vim
 
 ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
 
-RUN echo "BiodataFinder 0.5.0" && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/ &&\
+RUN echo "BiodataFinder 0.5.0" && git clone --branch master https://github.com/swalf/biodatafinder.git /tmp/bdf/ &&\
     mkdir /root/.biodatafinder/ &&\
-    cd /temp/bdf/ &&\
+    cd /tmp/bdf/ &&\
     gem build biodatafinder.gemspec &&\
     gem install /tmp/biodatafinder-0.5.0.gem
 
