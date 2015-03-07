@@ -16,21 +16,13 @@ RUN apt-get install -y supervisor
 
 RUN apt-get install -y vim
 
-COPY elasticsearch-1.4.2.tar.gz /opt/
+ADD https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.4.2.tar.gz /opt/
 
-#RUN echo '2015-02-09 17:10' && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/
-
-#RUN mkdir /root/.biodatafinder/
-
-
-#RUN cd /temp/bdf/ &&\
-#    gem build biodatafinder.gemspec
-
-#RUN cd /temp/bdf/ &&\
-#	ls
-
-COPY biodatafinder-0.4.0.pre.gem /tmp/
-RUN gem install /tmp/biodatafinder-0.4.0.pre.gem
+RUN echo "BiodataFinder 0.5.0" && git clone --branch master https://github.com/swalf/biodatafinder.git /temp/bdf/ &&\
+    mkdir /root/.biodatafinder/ &&\
+    cd /temp/bdf/ &&\
+    gem build biodatafinder.gemspec &&\
+    gem install /tmp/biodatafinder-0.5.0.gem
 
 
 RUN cd /opt &&\
