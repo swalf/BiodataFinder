@@ -22,7 +22,7 @@ RUN echo "BiodataFinder 0.5.0" && git clone --branch master https://github.com/s
     mkdir /root/.biodatafinder/ &&\
     cd /tmp/bdf/ &&\
     gem build biodatafinder.gemspec &&\
-    gem install /tmp/biodatafinder-0.5.0.gem
+    gem install biodatafinder-0.5.0.gem
 
 
 RUN cd /opt &&\
